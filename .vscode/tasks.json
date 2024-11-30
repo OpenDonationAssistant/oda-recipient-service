@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run service",
+      "type": "shell",
+      "command": "(podman stop recipient-service || true) && export MICRONAUT_SERVER_PORT=8084 && CLIENT_ID=oda-console CLIENT_SECRET=TYaqCopUUsx2Jmakif55qBquZSUXOGhL mvn mn:run",
+      "group": "run",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}

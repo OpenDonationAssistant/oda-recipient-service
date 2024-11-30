@@ -1,0 +1,45 @@
+micronaut:
+  application:
+    name: oda-recipient-service
+  executors:
+    rabbit:
+      nThreads: 1
+      type: fixed
+      name: rabbit
+  security:
+    authentication: idtoken
+    oauth2:
+      enabled: true
+      clients:
+        keycloak:
+          client-id: ${CLIENT_ID}
+          client-secret: ${CLIENT_SECRET}
+          openid:
+            issuer: ${ISSUER}
+            jwks-uri: ${JWKS_URI}
+            token:
+              url: ${TOKEN_URL}
+datasources:
+  default:
+    url: ${JDBC_URL:`jdbc:postgresql://localhost/postgres?currentSchema=recipient`}
+    username: ${JDBC_USER:`postgres`}
+    password: ${JDBC_PASSWORD:`postgres`}
+    driverClassName: 'org.postgresql.Driver'
+endpoints:
+  flyway:
+    enabled: true
+flyway:
+  datasources:
+    default:
+      enabled: true
+      baseline-on-migrate: true
+      validate-migration-naming: false
+      validate-on-migrate: false
+jpa:
+  default:
+    entity-scan:
+        packages: 'io.github.stcarolas.oda'
+rabbitmq:
+  host: ${RABBITMQ_HOST:`localhost`}
+  consumer-executor: "rabbit"
+infinispan.url: ${INFINISPAN_HOST:`127.0.0.1`}

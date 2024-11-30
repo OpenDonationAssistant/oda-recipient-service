@@ -1,0 +1,4 @@
+INDEX VERSION 1.134+/tmp/oda-config-server/.metadata/.plugins/org.eclipse.jdt.core
+3842426239.index
+1865797976.index
+4178566482.index
