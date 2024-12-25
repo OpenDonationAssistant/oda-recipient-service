@@ -14,7 +14,6 @@ public class ExchangeOtpCommand {
 
   public ExchangeOtpCommandResponse execute(Map<String, String> cache) {
     var token = cache.get(otp);
-    cache.remove(otp);
     return new ExchangeOtpCommandResponse(token);
   }
 }
