@@ -7,18 +7,16 @@ micronaut:
       type: fixed
       name: rabbit
   security:
-    authentication: idtoken
-    oauth2:
-      enabled: true
-      clients:
-        keycloak:
-          client-id: ${CLIENT_ID}
-          client-secret: ${CLIENT_SECRET}
-          openid:
-            issuer: ${ISSUER}
-            jwks-uri: ${JWKS_URI}
-            token:
-              url: ${TOKEN_URL}
+    token:
+      bearer:
+        enabled: true
+      cookie:
+        enabled: true
+      jwt:
+        signatures:
+          jwks:
+            keycloak:
+              url: https://auth.oda.digital/realms/ODA/protocol/openid-connect/certs
 datasources:
   default:
     url: ${JDBC_URL:`jdbc:postgresql://localhost/postgres?currentSchema=recipient`}
