@@ -13,7 +13,7 @@ public interface ContributionCommandSender {
 
   default void send(String recipientId) {
     this.internalSend(
-        "%sdonaterstoplist".formatted(),
+        "%sdonaterstoplist".formatted(recipientId),
         new ContributionReloadCommand(recipientId)
       );
   }
