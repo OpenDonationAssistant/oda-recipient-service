@@ -19,14 +19,17 @@ public class ContributionListener {
   private Logger log = LoggerFactory.getLogger(ContributionListener.class);
 
   private ContributionRepository repository;
+  private ContributionCommandSender commandSender;
   private Map<String, DailyContribution> dailyContribution;
 
   @Inject
   public ContributionListener(
     ContributionRepository repository,
+    ContributionCommandSender commandSender,
     Map<String, DailyContribution> dailyContribution
   ) {
     this.repository = repository;
+    this.commandSender = commandSender;
     this.dailyContribution = dailyContribution;
   }
 
@@ -46,14 +49,14 @@ public class ContributionListener {
     updatePeriodContribution(nickname, amount, recipientId, year_key);
     updatePeriodContribution(nickname, amount, recipientId, month_key);
     updateDaily(nickname, amount, recipientId);
+    commandSender.send(recipientId);
   }
 
   private void updateDaily(String nickname, Amount amount, String recipientId) {
     Map<String, Amount> daily = dailyContribution
       .getOrDefault(recipientId, new DailyContribution())
       .getContributions();
-    Amount result = Optional
-      .ofNullable(daily.get(nickname))
+    Amount result = Optional.ofNullable(daily.get(nickname))
       .map(it ->
         new Amount(
           it.getMajor() + amount.getMajor(),
@@ -84,17 +87,14 @@ public class ContributionListener {
         contribution.setAmount(newAmount);
         return contribution;
       })
-      .ifPresentOrElse(
-        repository::update,
-        () -> {
-          var contribution = new Contribution();
-          contribution.setId(UUID.randomUUID().toString());
-          contribution.setAmount(amount);
-          contribution.setPeriod(period);
-          contribution.setNickname(nickname);
-          contribution.setRecipientId(recipientId);
-          repository.save(contribution);
-        }
-      );
+      .ifPresentOrElse(repository::update, () -> {
+        var contribution = new Contribution();
+        contribution.setId(UUID.randomUUID().toString());
+        contribution.setAmount(amount);
+        contribution.setPeriod(period);
+        contribution.setNickname(nickname);
+        contribution.setRecipientId(recipientId);
+        repository.save(contribution);
+      });
   }
 }
