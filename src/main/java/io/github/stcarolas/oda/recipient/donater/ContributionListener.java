@@ -1,5 +1,6 @@
 package io.github.stcarolas.oda.recipient.donater;
 
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.rabbitmq.annotation.Queue;
 import io.micronaut.rabbitmq.annotation.RabbitListener;
 import java.time.ZoneId;
@@ -69,12 +70,16 @@ public class ContributionListener {
     dailyContribution.put(recipientId, new DailyContribution(daily));
   }
 
+  // TODO make nickname Optional
   private void updatePeriodContribution(
     String nickname,
     Amount amount,
     String recipientId,
     String period
   ) {
+    if (StringUtils.isEmpty(nickname)) {
+      return;
+    }
     repository
       .getByRecipientIdAndPeriodAndNickname(recipientId, period, nickname)
       .map(contribution -> {
