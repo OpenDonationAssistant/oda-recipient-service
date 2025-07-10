@@ -8,16 +8,16 @@
   <parent>
     <groupId>io.micronaut.platform</groupId>
     <artifactId>micronaut-parent</artifactId>
-    <version>4.5.0</version>
+    <version>4.8.3</version>
   </parent>
   <properties>
     <packaging>jar</packaging>
-    <jdk.version>17</jdk.version>
-    <release.version>17</release.version>
-    <micronaut.version>4.2.3</micronaut.version>
+    <jdk.version>21</jdk.version>
+    <release.version>21</release.version>
+    <micronaut.version>4.8.3</micronaut.version>
     <micronaut.runtime>netty</micronaut.runtime>
     <micronaut.aot.enabled>false</micronaut.aot.enabled>
-    <micronaut.aot.packageName>io.github.stcarolas.oda.aot.generated</micronaut.aot.packageName>
+    <micronaut.aot.packageName>io.github.opendonationassistant.aot.generated</micronaut.aot.packageName>
     <exec.mainClass>io.github.stcarolas.oda.Application</exec.mainClass>
   </properties>
   <repositories>
@@ -44,29 +44,24 @@
       <version>4.4.0</version>
     </dependency>
     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>3.16.0</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.16.0</version>
     </dependency>
     <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-admin-client</artifactId>
-        <version>25.0.4</version>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-admin-client</artifactId>
+      <version>25.0.4</version>
     </dependency>
     <dependency>
       <groupId>io.github.opendonationassistant</groupId>
       <artifactId>oda-rabbit-conf</artifactId>
-      <version>0.5.0-17</version>
+      <version>0.7.58</version>
     </dependency>
     <dependency>
       <groupId>javax.transaction</groupId>
       <artifactId>jta</artifactId>
       <version>1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-      <version>1</version>
     </dependency>
     <dependency>
       <groupId>io.micronaut.rabbitmq</groupId>
@@ -142,9 +137,9 @@
       <artifactId>micronaut-flyway</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-database-postgresql</artifactId>
-        <scope>runtime</scope>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut.data</groupId>
@@ -177,10 +172,6 @@
           </aotDependencies>
           <configFile>aot-${packaging}.properties</configFile>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
