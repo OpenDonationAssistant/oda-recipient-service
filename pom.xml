@@ -18,7 +18,7 @@
     <micronaut.runtime>netty</micronaut.runtime>
     <micronaut.aot.enabled>false</micronaut.aot.enabled>
     <micronaut.aot.packageName>io.github.opendonationassistant.aot.generated</micronaut.aot.packageName>
-    <exec.mainClass>io.github.stcarolas.oda.Application</exec.mainClass>
+    <exec.mainClass>io.github.opendonationassistant.Application</exec.mainClass>
   </properties>
   <repositories>
     <repository>
