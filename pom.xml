@@ -156,6 +156,11 @@
       <artifactId>micronaut-jdbc-hikari</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>io.micronaut.openapi</groupId>
+      <artifactId>micronaut-openapi-annotations</artifactId>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -210,12 +215,45 @@
                 </exclusion>
               </exclusions>
             </path>
+            <path>
+              <groupId>io.micronaut.openapi</groupId>
+              <artifactId>micronaut-openapi</artifactId>
+              <version>${micronaut.openapi.version}</version>
+              <exclusions>
+                <exclusion>
+                  <groupId>io.micronaut</groupId>
+                  <artifactId>micronaut-inject</artifactId>
+                </exclusion>
+              </exclusions>
+            </path>
           </annotationProcessorPaths>
           <compilerArgs>
-            <arg>-Amicronaut.processing.group=io.github.stcarolas.oda</arg>
+            <arg>-Amicronaut.processing.group=io.github.opendonationassistant</arg>
             <arg>-Amicronaut.processing.module=oda-recipient-service</arg>
           </compilerArgs>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>7.2.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+            <inputSpec>${project.basedir}/target/classes/META-INF/swagger/oda-recipient-service-1.0.0.yml</inputSpec>
+              <generatorName>typescript-axios</generatorName>
+              <configurationFile>openapi-config.json</configurationFile>
+              <configOptions>
+                <output>${project.build.directory}/</output>
+                <npmVersion>${project.version}</npmVersion>
+              </configOptions>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

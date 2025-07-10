@@ -1,0 +1,6 @@
+{
+  "npmName": "@opendonationassistant/oda-recipient-service-client",
+  "npmRepository" : "https://npm.pkg.github.com",
+  "snapshot" : false,
+  "supportsES6": true
+}
