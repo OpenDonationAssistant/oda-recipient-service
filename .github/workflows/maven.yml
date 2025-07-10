@@ -2,57 +2,14 @@ name: Release
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
 
 permissions: write-all
 
 jobs:
-  build-and-push:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-
-    - uses: s4u/maven-settings-action@v3.0.0
-      with:
-        servers: '[{"id": "github", "username": "${{ secrets.MAVEN_USER }}", "password": "${{ secrets.MAVEN_TOKEN }}"}]'
-        repositories: '[{"id":"github","name":"github","url":"https://maven.pkg.github.com/opendonationassistant/oda-libraries","snapshots":{"enabled":true}}]'
-
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml -DskipTests
-
-    - name: Update dependency graph
-      uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
-
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.NPM_TOKEN }}
-
-    - name: Build and push
-      uses: docker/build-push-action@v5
-      with:
-        github-token: ${{ secrets.NPM_TOKEN }}
-        context: .
-        push: true
-        tags: ghcr.io/opendonationassistant/oda-recipient-service:${{ github.RUN_NUMBER }}
-
-    - name: Deploying new version
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        port: ${{ secrets.PORT }}
-        script: sh ~/update_recipient_service.sh ${{ github.RUN_NUMBER }}
+  build-and-deploy:
+    uses: "OpenDonationAssistant/oda-libraries/.github/workflows/build_and_deploy_native_with_client_package.yml@master"
+    secrets: inherit
+    with:
+      service: recipient-service
+      version: "${{ github.RUN_NUMBER }}"
