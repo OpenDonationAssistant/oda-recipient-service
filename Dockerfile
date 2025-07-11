@@ -1,5 +1,4 @@
-FROM eclipse-temurin:17-jdk-jammy
-LABEL org.opencontainers.image.source=https://github.com/opendonationasssistant/oda-recipient-service
+FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 COPY target/oda-recipient-service-0.1.jar /app
 

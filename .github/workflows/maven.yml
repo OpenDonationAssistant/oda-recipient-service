@@ -8,8 +8,9 @@ permissions: write-all
 
 jobs:
   build-and-deploy:
-    uses: "OpenDonationAssistant/oda-libraries/.github/workflows/build_and_deploy_native_with_client_package.yml@master"
+    uses: "OpenDonationAssistant/oda-libraries/.github/workflows/release_service.yml@master"
     secrets: inherit
     with:
       service: recipient-service
       version: "${{ github.RUN_NUMBER }}"
+      packaging: jar
