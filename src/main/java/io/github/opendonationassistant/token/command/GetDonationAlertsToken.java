@@ -68,19 +68,23 @@ public class GetDonationAlertsToken extends BaseController {
     return client
       .getToken(params)
       .thenApply(response -> {
-        log.info(
-          "Handling response" + command.authorizationCode(),
-          Map.of("params", params)
-        );
-        repository.save(
-          new TokenData(
-            Generators.timeBasedEpochGenerator().generate().toString(),
-            response.accessToken(),
-            "accessToken",
-            owner.get(),
-            "DonationAlerts"
-          )
-        );
+        try {
+          log.info(
+            "Handling response" + command.authorizationCode(),
+            Map.of("params", params)
+          );
+          repository.save(
+            new TokenData(
+              Generators.timeBasedEpochGenerator().generate().toString(),
+              response.accessToken(),
+              "accessToken",
+              owner.get(),
+              "DonationAlerts"
+            )
+          );
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         return HttpResponse.ok();
       });
   }
