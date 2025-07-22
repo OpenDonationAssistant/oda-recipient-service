@@ -8,6 +8,9 @@ import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.serde.annotation.Serdeable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,13 +20,16 @@ public interface DonationAlertsClient {
     value = "/oauth/token",
     produces = MediaType.APPLICATION_FORM_URLENCODED
   )
-  @ExecuteOn(TaskExecutors.BLOCKING)
   CompletableFuture<TokenResponse> getToken(@Body Map<String, String> request);
+
 
   @Serdeable
   public static record TokenResponse(
+    @JsonProperty("token_type")
     String tokenType,
+    @JsonProperty("access_token")
     String accessToken,
+    @JsonProperty("refresh_token")
     String refreshToken
   ) {}
 }
