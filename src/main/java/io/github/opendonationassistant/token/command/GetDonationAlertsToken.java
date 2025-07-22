@@ -61,6 +61,7 @@ public class GetDonationAlertsToken extends BaseController {
     params.put("client_id", clientId);
     params.put("client_secret", clientSecret);
     params.put("code", command.authorizationCode());
+    params.put("redirect_uri","https%3A%2F%2Fwidgets.oda.digital%2Fconfiguration%2Fintegrations%2Fdonationalerts");
     log.info(
       "Issue new DA token, code: " + command.authorizationCode(),
       Map.of("params", params)
