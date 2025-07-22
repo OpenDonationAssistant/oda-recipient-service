@@ -47,6 +47,7 @@ public class GetDonationAlertsToken extends BaseController {
 
   @Post("/recipients/tokens/getdonationalertstoken")
   @Secured(SecurityRule.IS_AUTHENTICATED)
+  @ExecuteOn(TaskExecutors.BLOCKING)
   public CompletableFuture<HttpResponse<Void>> getDonationAlertsToken(
     Authentication auth,
     @Body GetDonationAlertsTokenCommand command
