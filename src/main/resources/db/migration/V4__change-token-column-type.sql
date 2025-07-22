@@ -1,0 +1,1 @@
+ALTER TABLE token ALTER COLUMN token TYPE text;
