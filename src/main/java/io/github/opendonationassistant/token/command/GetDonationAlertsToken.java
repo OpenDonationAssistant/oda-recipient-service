@@ -1,7 +1,6 @@
 package io.github.opendonationassistant.token.command;
 
 import com.fasterxml.uuid.Generators;
-
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.client.DonationAlertsClient;
@@ -22,6 +21,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
 public class GetDonationAlertsToken extends BaseController {
@@ -47,25 +47,30 @@ public class GetDonationAlertsToken extends BaseController {
 
   @Post("/recipients/tokens/getdonationalertstoken")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  @ExecuteOn(TaskExecutors.BLOCKING)
-  public HttpResponse<Void> getDonationAlertsToken(
+  public CompletableFuture<HttpResponse<Void>> getDonationAlertsToken(
     Authentication auth,
     @Body GetDonationAlertsTokenCommand command
   ) {
     var owner = getOwnerId(auth);
     if (owner.isEmpty()) {
-      return HttpResponse.unauthorized();
+      return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
     var params = new HashMap<String, String>();
     params.put("grant_type", "authorization_code");
     params.put("client_id", clientId);
     params.put("client_secret", clientSecret);
     params.put("code", command.authorizationCode());
-    log.info("Issue new DA token, code: " + command.authorizationCode(), Map.of("params", params));
-    client
+    log.info(
+      "Issue new DA token, code: " + command.authorizationCode(),
+      Map.of("params", params)
+    );
+    return client
       .getToken(params)
-      .thenAccept(response -> {
-        log.info("Handling response" + command.authorizationCode(), Map.of("params", params));
+      .thenApply(response -> {
+        log.info(
+          "Handling response" + command.authorizationCode(),
+          Map.of("params", params)
+        );
         repository.save(
           new TokenData(
             Generators.timeBasedEpochGenerator().generate().toString(),
@@ -75,8 +80,8 @@ public class GetDonationAlertsToken extends BaseController {
             "DonationAlerts"
           )
         );
-      }).join();
-    return HttpResponse.ok();
+        return HttpResponse.ok();
+      });
   }
 
   @Serdeable
