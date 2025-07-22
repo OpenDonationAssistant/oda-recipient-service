@@ -29,6 +29,7 @@ public class GetDonationAlertsToken extends BaseController {
   private final DonationAlertsClient client;
   private final String clientId;
   private final String clientSecret;
+  private final String redirect;
   private final TokenDataRepository repository;
   private final ODALogger log = new ODALogger(this);
 
@@ -37,12 +38,14 @@ public class GetDonationAlertsToken extends BaseController {
     DonationAlertsClient client,
     TokenDataRepository repository,
     @Value("${donationalerts.id}") String clientId,
-    @Value("${donationalerts.secret}") String clientSecret
+    @Value("${donationalerts.secret}") String clientSecret,
+    @Value("${donationalerts.redirect}") String redirect
   ) {
     this.client = client;
     this.repository = repository;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
+    this.redirect = redirect;
   }
 
   @Post("/recipients/tokens/getdonationalertstoken")
@@ -61,7 +64,7 @@ public class GetDonationAlertsToken extends BaseController {
     params.put("client_id", clientId);
     params.put("client_secret", clientSecret);
     params.put("code", command.authorizationCode());
-    params.put("redirect_uri","https%3A%2F%2Fwidgets.oda.digital%2Fconfiguration%2Fintegrations%2Fdonationalerts");
+    params.put("redirect_uri", redirect);
     log.info(
       "Issue new DA token, code: " + command.authorizationCode(),
       Map.of("params", params)
@@ -72,7 +75,7 @@ public class GetDonationAlertsToken extends BaseController {
         try {
           log.info(
             "Handling response" + command.authorizationCode(),
-            Map.of("params", params)
+            Map.of("params", params, "response", response)
           );
           repository.save(
             new TokenData(
