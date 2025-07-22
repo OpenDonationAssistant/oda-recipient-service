@@ -38,7 +38,7 @@ public class GetDonationAlertsToken extends BaseController {
     this.clientSecret = clientSecret;
   }
 
-  @Post
+  @Post("/recipients/tokens/getdonationalertstoken")
   @Secured(SecurityRule.IS_AUTHENTICATED)
   public HttpResponse<Void> getDonationAlertsToken(
     Authentication auth,
