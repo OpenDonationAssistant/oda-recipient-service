@@ -1,15 +1,16 @@
+<?xml version="1.0"?>
 <configuration>
-
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <logger name="io.micronaut.security.oauth2" level="INFO"/>
-    <logger name="io.micronaut.context.conditio" level="INFO"/>
-
-    <root level="INFO">
-        <appender-ref ref="STDOUT" />
-    </root>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>{"timestamp":"%d{HH:mm:ss.SSS}","level":"%level","logger":"%logger","context":[%X{context}],"errors":[%X{error}],"message": "%replace(%replace(%msg){'\"','\\"'}){'\n',\" \"}"}%n</pattern>
+    </encoder>
+  </appender>
+  <logger name="org.flywaydb.core" level="WARN"/>
+  <logger name="com.zaxxer.hikari" level="WARN"/>
+  <logger name="io.micronaut.logging.PropertiesLoggingLevelsConfigurer" level="WARN"/>
+  <logger name="io.micronaut.flyway.AbstractFlywayMigration" level="WARN"/>
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+  </root>
 </configuration>
+
