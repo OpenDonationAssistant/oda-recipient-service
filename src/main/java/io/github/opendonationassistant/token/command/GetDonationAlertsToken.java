@@ -65,30 +65,20 @@ public class GetDonationAlertsToken extends BaseController {
     params.put("client_secret", clientSecret);
     params.put("code", command.authorizationCode());
     params.put("redirect_uri", redirect);
-    log.info(
-      "Issue new DA token, code: " + command.authorizationCode(),
-      Map.of("params", params)
-    );
+    log.info("Issue new DA token", Map.of("recipientId", owner.get()));
     return client
       .getToken(params)
       .thenApply(response -> {
-        try {
-          log.info(
-            "Handling response" + command.authorizationCode(),
-            Map.of("params", params, "response", response)
-          );
-          repository.save(
-            new TokenData(
-              Generators.timeBasedEpochGenerator().generate().toString(),
-              response.accessToken(),
-              "accessToken",
-              owner.get(),
-              "DonationAlerts"
-            )
-          );
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
+        repository.save(
+          new TokenData(
+            Generators.timeBasedEpochGenerator().generate().toString(),
+            response.accessToken(),
+            "accessToken",
+            owner.get(),
+            "DonationAlerts",
+            true
+          )
+        );
         return HttpResponse.ok();
       });
   }

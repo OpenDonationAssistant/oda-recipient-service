@@ -11,5 +11,10 @@ public record TokenData(
   String token,
   String type,
   String recipientId,
-  String system
-) {}
+  String system,
+  boolean enabled
+) {
+  public TokenData withEnabled(boolean enabled) {
+    return new TokenData(id, token, type, recipientId, system, enabled);
+  }
+}

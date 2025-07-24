@@ -2,6 +2,8 @@ package io.github.opendonationassistant.otp.command;
 
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Requires;
+import java.util.HashMap;
 import java.util.Map;
 import org.infinispan.client.hotrod.DataFormat;
 import org.infinispan.client.hotrod.RemoteCacheManager;
@@ -13,7 +15,8 @@ public class OtpCacheConfiguration {
   private static final String CACHE_NAME = "otp";
 
   @Bean
-  public Map<String, String> donatersCache(RemoteCacheManager cacheManager) {
+  @Requires(env = "standalone")
+  public Map<String, String> otpCache(RemoteCacheManager cacheManager) {
     return cacheManager
       .getCache(CACHE_NAME)
       .withDataFormat(
@@ -22,5 +25,11 @@ public class OtpCacheConfiguration {
           .valueMarshaller(new UTF8StringMarshaller())
           .build()
       );
+  }
+
+  @Bean
+  @Requires(env = "allinone")
+  public Map<String, String> otpCache() {
+    return new HashMap<>();
   }
 }

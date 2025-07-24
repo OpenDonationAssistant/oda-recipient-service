@@ -1,5 +1,6 @@
 package io.github.opendonationassistant.token.command;
 
+import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.repository.TokenData;
 import io.github.opendonationassistant.token.repository.TokenDataRepository;
@@ -44,18 +45,22 @@ public class SetToken extends BaseController {
               command.token(),
               command.type(),
               command.recipientId(),
-              command.system()
+              command.system(),
+              true
             )
           );
         },
         () -> {
           repository.save(
             new TokenData(
-              command.id(),
+              Optional.ofNullable(command.id()).orElseGet(() ->
+                Generators.timeBasedEpochGenerator().generate().toString()
+              ),
               command.token(),
               command.type(),
               command.recipientId(),
-              command.system()
+              command.system(),
+              true
             )
           );
         }
