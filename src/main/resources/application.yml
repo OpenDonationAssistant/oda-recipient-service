@@ -39,5 +39,5 @@ infinispan:
     hotrod:
       server:
         host: "${INFINISPAN_HOST: `127.0.0.1`}"
-        port: 10222
+        port: "${INFINISPAN_PORT: 11222}"
 
