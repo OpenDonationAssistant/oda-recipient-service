@@ -34,4 +34,10 @@ jpa:
 rabbitmq:
   host: ${RABBITMQ_HOST:`localhost`}
   consumer-executor: "rabbit"
-infinispan.url: ${INFINISPAN_HOST:`127.0.0.1`}
+infinispan:
+  client:
+    hotrod:
+      server:
+        host: "${INFINISPAN_HOST: `127.0.0.1`}"
+        port: 10222
+
