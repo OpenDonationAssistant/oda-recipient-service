@@ -38,7 +38,13 @@ public class TokenController extends BaseController {
   }
 
   private TokenDto convert(TokenData data) {
-    return new TokenDto(data.id(), data.system(), data.type(), data.token());
+    return new TokenDto(
+      data.id(),
+      data.system(),
+      data.type(),
+      data.token(),
+      data.enabled()
+    );
   }
 
   @Serdeable
@@ -46,6 +52,7 @@ public class TokenController extends BaseController {
     String id,
     String system,
     String type,
-    String token
+    String token,
+    Boolean enabled
   ) {}
 }
