@@ -44,7 +44,7 @@ public class SetToken extends BaseController {
               command.id(),
               command.token(),
               command.type(),
-              command.recipientId(),
+              owner.get(),
               command.system(),
               true
             )
@@ -58,7 +58,7 @@ public class SetToken extends BaseController {
               ),
               command.token(),
               command.type(),
-              command.recipientId(),
+              owner.get(),
               command.system(),
               true
             )
@@ -73,7 +73,6 @@ public class SetToken extends BaseController {
     String id,
     String token,
     String type,
-    String recipientId,
     String system
   ) {}
 }
