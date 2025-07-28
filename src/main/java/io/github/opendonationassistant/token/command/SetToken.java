@@ -1,6 +1,7 @@
 package io.github.opendonationassistant.token.command;
 
 import com.fasterxml.uuid.Generators;
+import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.repository.TokenData;
 import io.github.opendonationassistant.token.repository.TokenDataRepository;
@@ -13,12 +14,15 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
 public class SetToken extends BaseController {
 
   private TokenDataRepository repository;
+
+  private final ODALogger log = new ODALogger(this);
 
   @Inject
   public SetToken(TokenDataRepository repository) {
@@ -39,6 +43,7 @@ public class SetToken extends BaseController {
       .map(repository::findById)
       .ifPresentOrElse(
         existed -> {
+          log.info("Updating token", Map.of("id", command.id()));
           repository.update(
             new TokenData(
               command.id(),
@@ -51,6 +56,19 @@ public class SetToken extends BaseController {
           );
         },
         () -> {
+          log.info(
+            "Creating token",
+            Map.of(
+              "id",
+              command.id(),
+              "type",
+              command.type(),
+              "system",
+              command.system(),
+              "recipientId",
+              owner.get()
+            )
+          );
           repository.save(
             new TokenData(
               Optional.ofNullable(command.id()).orElseGet(() ->
