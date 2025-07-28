@@ -40,7 +40,7 @@ public class SetToken extends BaseController {
       return HttpResponse.unauthorized();
     }
     Optional.ofNullable(command.id())
-      .map(repository::findById)
+      .flatMap(repository::findById)
       .ifPresentOrElse(
         existed -> {
           log.info("Updating token", Map.of("id", command.id()));
