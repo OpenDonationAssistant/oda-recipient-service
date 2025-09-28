@@ -11,6 +11,7 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class TokenController extends BaseController {
@@ -43,7 +44,8 @@ public class TokenController extends BaseController {
       data.system(),
       data.type(),
       data.token(),
-      data.enabled()
+      data.enabled(),
+      data.settings()
     );
   }
 
@@ -53,6 +55,7 @@ public class TokenController extends BaseController {
     String system,
     String type,
     String token,
-    Boolean enabled
+    Boolean enabled,
+    Map<String, Object> settings
   ) {}
 }

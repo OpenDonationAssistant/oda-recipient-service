@@ -6,6 +6,7 @@ import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.client.DonationAlertsClient;
 import io.github.opendonationassistant.token.repository.TokenData;
 import io.github.opendonationassistant.token.repository.TokenDataRepository;
+import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -30,13 +31,13 @@ public class GetDonationAlertsToken extends BaseController {
   private final String clientId;
   private final String clientSecret;
   private final String redirect;
-  private final TokenDataRepository repository;
+  private final TokenRepository repository;
   private final ODALogger log = new ODALogger(this);
 
   @Inject
   public GetDonationAlertsToken(
     DonationAlertsClient client,
-    TokenDataRepository repository,
+    TokenRepository repository,
     @Value("${donationalerts.id}") String clientId,
     @Value("${donationalerts.secret}") String clientSecret,
     @Value("${donationalerts.redirect}") String redirect
@@ -69,16 +70,14 @@ public class GetDonationAlertsToken extends BaseController {
     return client
       .getToken(params)
       .thenApply(response -> {
-        repository.save(
-          new TokenData(
-            Generators.timeBasedEpochGenerator().generate().toString(),
+        repository
+          .create(
             response.accessToken(),
             "accessToken",
             owner.get(),
-            "DonationAlerts",
-            true
+            "DonationAlerts"
           )
-        );
+          .save();
         return HttpResponse.ok();
       });
   }

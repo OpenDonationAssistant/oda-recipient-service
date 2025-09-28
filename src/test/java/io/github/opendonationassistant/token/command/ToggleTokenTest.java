@@ -13,12 +13,18 @@ import jakarta.inject.Inject;
 import java.util.Map;
 import org.instancio.junit.Given;
 import org.instancio.junit.InstancioExtension;
+import org.instancio.junit.WithSettings;
+import org.instancio.settings.Settings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @MicronautTest(environments = "allinone")
 @ExtendWith(InstancioExtension.class)
 public class ToggleTokenTest {
+
+  @WithSettings
+  private final Settings settings = Settings.create()
+    .mapType(Object.class, String.class);
 
   @Inject
   TokenDataRepository repository;
@@ -33,9 +39,9 @@ public class ToggleTokenTest {
       Map.of("preferred_username", token.recipientId())
     );
 
-    repository.save(token);
+    repository.save(token.withEnabled(true));
     controller.toggleToken(auth, new ToggleTokenCommand(token.id(), false));
     var result = repository.findById(token.id());
-    assertNotEquals(token.enabled(), result.get().enabled());
+    assertFalse(result.get().enabled());
   }
 }

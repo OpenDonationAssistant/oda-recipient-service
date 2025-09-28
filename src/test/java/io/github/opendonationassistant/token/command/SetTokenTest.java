@@ -12,12 +12,18 @@ import jakarta.inject.Inject;
 import java.util.Map;
 import org.instancio.junit.Given;
 import org.instancio.junit.InstancioExtension;
+import org.instancio.junit.WithSettings;
+import org.instancio.settings.Settings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @MicronautTest(environments = "allinone")
 @ExtendWith(InstancioExtension.class)
 public class SetTokenTest {
+
+  @WithSettings
+  private final Settings settings = Settings.create()
+    .mapType(Object.class, String.class);
 
   @Inject
   SetToken controller;
@@ -63,7 +69,8 @@ public class SetTokenTest {
         oldData.type(),
         recipientId,
         oldData.system(),
-        true
+        true,
+        oldData.settings()
       )
     );
 
@@ -71,7 +78,8 @@ public class SetTokenTest {
       oldData.id(),
       command.token(),
       command.type(),
-      command.system()
+      command.system(),
+      command.settings()
     );
 
     controller.setToken(auth, updateCommand);

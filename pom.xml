@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.stcarolas.oda</groupId>
   <artifactId>oda-recipient-service</artifactId>
-  <version>0.0.8</version>
+  <version>0.0.9</version>
   <packaging>${packaging}</packaging>
   <parent>
     <groupId>io.micronaut.platform</groupId>

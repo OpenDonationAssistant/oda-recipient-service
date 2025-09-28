@@ -12,12 +12,18 @@ import jakarta.inject.Inject;
 import java.util.Map;
 import org.instancio.junit.Given;
 import org.instancio.junit.InstancioExtension;
+import org.instancio.junit.WithSettings;
+import org.instancio.settings.Settings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @MicronautTest(environments = "allinone")
 @ExtendWith(InstancioExtension.class)
 public class DeleteTokenTest {
+
+  @WithSettings
+  private final Settings settings = Settings.create()
+    .mapType(Object.class, String.class);
 
   @Inject
   DeleteToken controller;

@@ -1,6 +1,5 @@
 package io.github.opendonationassistant.token.command;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.repository.TokenData;
@@ -39,21 +38,21 @@ public class SetToken extends BaseController {
     if (owner.isEmpty()) {
       return HttpResponse.unauthorized();
     }
+    var data = new TokenData(
+      command.id(),
+      command.token(),
+      command.type(),
+      owner.get(),
+      command.system(),
+      true,
+      command.settings()
+    );
     Optional.ofNullable(command.id())
       .flatMap(repository::findById)
       .ifPresentOrElse(
         existed -> {
           log.info("Updating token", Map.of("id", command.id()));
-          repository.update(
-            new TokenData(
-              command.id(),
-              command.token(),
-              command.type(),
-              owner.get(),
-              command.system(),
-              true
-            )
-          );
+          repository.update(data);
         },
         () -> {
           log.info(
@@ -69,18 +68,7 @@ public class SetToken extends BaseController {
               owner.get()
             )
           );
-          repository.save(
-            new TokenData(
-              Optional.ofNullable(command.id()).orElseGet(() ->
-                Generators.timeBasedEpochGenerator().generate().toString()
-              ),
-              command.token(),
-              command.type(),
-              owner.get(),
-              command.system(),
-              true
-            )
-          );
+          repository.save(data);
         }
       );
     return HttpResponse.ok();
@@ -91,6 +79,7 @@ public class SetToken extends BaseController {
     String id,
     String token,
     String type,
-    String system
+    String system,
+    Map<String, Object> settings
   ) {}
 }
