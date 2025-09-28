@@ -1,8 +1,9 @@
 package io.github.opendonationassistant.token.view;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
+import io.github.opendonationassistant.token.repository.Token;
 import io.github.opendonationassistant.token.repository.TokenData;
-import io.github.opendonationassistant.token.repository.TokenDataRepository;
+import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -16,9 +17,9 @@ import java.util.Map;
 @Controller
 public class TokenController extends BaseController {
 
-  private final TokenDataRepository repository;
+  private final TokenRepository repository;
 
-  public TokenController(TokenDataRepository repository) {
+  public TokenController(TokenRepository repository) {
     this.repository = repository;
   }
 
@@ -33,6 +34,7 @@ public class TokenController extends BaseController {
       repository
         .findByRecipientId(owner.get())
         .stream()
+        .map(Token::data)
         .map(this::convert)
         .toList()
     );

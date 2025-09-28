@@ -13,7 +13,8 @@ public class DonationAlertsToken extends GenericToken {
   protected Map<String, Object> defaultSettings() {
     var settings = new HashMap<String, Object>();
     settings.put("triggerAlerts", true);
-    settings.put("triggerDonatofon", true);
+    settings.put("triggerDonaton", true);
+    settings.put("triggerReel", true);
     settings.put("addToGoal", true);
     settings.put("countInTop", true);
     return settings;

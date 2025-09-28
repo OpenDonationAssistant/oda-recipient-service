@@ -11,15 +11,7 @@ public class GenericToken implements Token {
   public GenericToken(TokenData data, TokenDataRepository repository) {
     var mergedSettings = defaultSettings();
     mergedSettings.putAll(data.settings());
-    this.data = new TokenData(
-      data.id(),
-      data.token(),
-      data.type(),
-      data.recipientId(),
-      data.system(),
-      data.enabled(),
-      mergedSettings
-    );
+    this.data = data.withSettings(mergedSettings);
     this.repository = repository;
   }
 

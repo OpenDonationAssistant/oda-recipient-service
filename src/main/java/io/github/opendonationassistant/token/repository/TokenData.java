@@ -29,4 +29,16 @@ public record TokenData(
       settings
     );
   }
+
+  public TokenData withSettings(Map<String, Object> settings) {
+    return new TokenData(
+      id,
+      token,
+      type,
+      recipientId,
+      system,
+      enabled,
+      settings
+    );
+  }
 }
