@@ -17,7 +17,7 @@ public class GenericToken implements Token {
 
   @Override
   public TokenData data() {
-    return this.data();
+    return this.data;
   }
 
   @Override
