@@ -27,5 +27,4 @@ public class KeycloakConfiguration {
     var targetRealm = instance.realm(realm);
     return targetRealm;
   }
-
 }
