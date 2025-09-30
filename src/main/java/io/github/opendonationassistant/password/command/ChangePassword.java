@@ -33,8 +33,8 @@ public class ChangePassword extends BaseController {
   public ChangePassword(
     RealmResource realm,
     KeycloakClient keycloak,
-    @Value("${keycloak.client}") String clientId,
-    @Value("${keycloak.clientSecret}") String clientSecret
+    @Value("${client.id}") String clientId,
+    @Value("${client.secret}") String clientSecret
   ) {
     this.realm = realm;
     this.keycloak = keycloak;
