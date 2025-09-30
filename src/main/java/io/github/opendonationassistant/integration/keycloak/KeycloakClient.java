@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 @Client("keycloak")
 public interface KeycloakClient {
   @Post(
-    value = "/auth/realms/ODA/protocol/openid-connect/token",
+    value = "/realms/ODA/protocol/openid-connect/token",
     produces = MediaType.APPLICATION_FORM_URLENCODED
   )
   CompletableFuture<GetAccessRecordResponse> getAccessToken(
