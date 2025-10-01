@@ -1,5 +1,6 @@
 package io.github.opendonationassistant.password.command;
 
+import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.keycloak.KeycloakClient;
 import io.micronaut.context.annotation.Value;
@@ -24,6 +25,7 @@ import org.zalando.problem.Problem;
 @Controller
 public class ChangePassword extends BaseController {
 
+  private final ODALogger log = new ODALogger(this);
   private final RealmResource realm;
   private final KeycloakClient keycloak;
   private final String clientId;
@@ -81,11 +83,13 @@ public class ChangePassword extends BaseController {
         if (token.accessToken().isEmpty()) {
           throw Problem.builder().withTitle("Invalid credentials").build();
         }
+        log.debug("Changing password", Map.of("recipientId", owner.get()));
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setTemporary(false);
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(command.newPassword());
-        user.get().setCredentials(List.of(credential));
+        realm.users().get(user.get().getId()).resetPassword(credential);
+        log.info("Password changed", Map.of("recipientId", owner.get()));
         return HttpResponse.ok();
       });
   }
