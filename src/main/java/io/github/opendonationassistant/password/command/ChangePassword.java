@@ -85,7 +85,7 @@ public class ChangePassword extends BaseController {
         }
         log.debug("Changing password", Map.of("recipientId", owner.get()));
         CredentialRepresentation credential = new CredentialRepresentation();
-        var credId = user.get().getCredentials().get(0).getId();
+        var credId = realm.users().get(user.get().getId()).credentials().get(0).getId();
         log.debug(
           "Found credentials to reset",
           Map.of("userId", user.get().getId(), "credId", credId)
