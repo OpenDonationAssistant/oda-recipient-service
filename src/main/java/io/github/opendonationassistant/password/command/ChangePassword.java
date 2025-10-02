@@ -86,12 +86,26 @@ public class ChangePassword extends BaseController {
         log.debug("Changing password", Map.of("recipientId", owner.get()));
         CredentialRepresentation credential = new CredentialRepresentation();
         var credId = user.get().getCredentials().get(0).getId();
+        log.debug(
+          "Found credentials to reset",
+          Map.of("userId", user.get().getId(), "credId", credId)
+        );
         credential.setId(credId);
         credential.setTemporary(false);
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(command.newPassword());
         realm.users().get(user.get().getId()).resetPassword(credential);
-        log.info("Password changed", Map.of("recipientId", owner.get(), "userId", user.get().getId(), "credId", credId));
+        log.info(
+          "Password changed",
+          Map.of(
+            "recipientId",
+            owner.get(),
+            "userId",
+            user.get().getId(),
+            "credId",
+            credId
+          )
+        );
         return HttpResponse.ok();
       });
   }
