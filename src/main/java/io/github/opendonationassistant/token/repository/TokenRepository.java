@@ -49,7 +49,7 @@ public class TokenRepository {
   }
 
   private Token convert(TokenData data) {
-    return switch (data.system()) {
+    return switch (data.system().toLowerCase()) {
       case "donatepay" -> new DonatePayToken(data, repository);
       case "donationalerts" -> new DonationAlertsToken(data, repository);
       default -> new GenericToken(data, repository);
