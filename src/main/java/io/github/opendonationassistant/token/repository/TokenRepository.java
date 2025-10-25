@@ -41,11 +41,7 @@ public class TokenRepository {
       new HashMap<>()
     );
     repository.save(data);
-    return switch (system) {
-      case "donatepay" -> new DonatePayToken(data, repository);
-      case "donationalerts" -> new DonationAlertsToken(data, repository);
-      default -> new GenericToken(data, repository);
-    };
+    return convert(data);
   }
 
   private Token convert(TokenData data) {

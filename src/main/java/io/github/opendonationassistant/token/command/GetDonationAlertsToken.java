@@ -1,11 +1,8 @@
 package io.github.opendonationassistant.token.command;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.client.DonationAlertsClient;
-import io.github.opendonationassistant.token.repository.TokenData;
-import io.github.opendonationassistant.token.repository.TokenDataRepository;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
@@ -13,7 +10,6 @@ import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.scheduling.TaskExecutors;
-import io.micronaut.scheduling.TaskScheduler;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
