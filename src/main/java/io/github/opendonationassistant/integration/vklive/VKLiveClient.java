@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Client("vklive")
-public interface VKLive {
+public interface VKLiveClient {
   @Post(
     value = "/oauth/server/token",
     consumes = MediaType.APPLICATION_FORM_URLENCODED
