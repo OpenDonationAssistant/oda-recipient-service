@@ -29,8 +29,8 @@ public class GetVKLiveToken extends BaseController {
   public GetVKLiveToken(
     VKLiveClient vklive,
     @Value("${vklive.redirect}") String redirect,
-    @Value("${vklive.clientId}") String clientId,
-    @Value("${vklive.clientSecret}") String clientSecret,
+    @Value("${vklive.client.id}") String clientId,
+    @Value("${vklive.client.secret}") String clientSecret,
     TokenRepository repository
   ) {
     this.vklive = vklive;

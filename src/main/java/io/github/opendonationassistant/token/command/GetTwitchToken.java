@@ -30,8 +30,8 @@ public class GetTwitchToken extends BaseController {
     TwitchClient twitch,
     TokenRepository repository,
     @Value("${twitch.redirect}") String redirect,
-    @Value("${twitch.clientId}") String clientId,
-    @Value("${twitch.clientSecret}") String clientSecret
+    @Value("${twitch.client.id}") String clientId,
+    @Value("${twitch.client.secret}") String clientSecret
   ) {
     this.twitch = twitch;
     this.repository = repository;
