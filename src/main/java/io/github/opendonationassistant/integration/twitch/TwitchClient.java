@@ -6,6 +6,7 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Client("twitch")
 public interface TwitchClient {
@@ -20,7 +21,7 @@ public interface TwitchClient {
 
   @Serdeable
   public static record GetAccessRecordResponse(
-    String accessToken,
-    String refreshToken
+    @JsonProperty("access_token") String accessToken,
+    @JsonProperty("refresh_token") String refreshToken
   ) {}
 }
