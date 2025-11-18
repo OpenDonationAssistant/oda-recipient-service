@@ -1,12 +1,12 @@
 package io.github.opendonationassistant.integration.twitch;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Client("twitch")
 public interface TwitchClient {

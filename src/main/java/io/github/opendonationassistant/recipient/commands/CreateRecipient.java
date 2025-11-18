@@ -2,6 +2,14 @@ package io.github.opendonationassistant.recipient.commands;
 
 import io.github.opendonationassistant.events.files.CreateBucketCommand;
 import io.github.opendonationassistant.events.files.FilesCommandSender;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Post;
+import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.rules.SecurityRule;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -12,40 +20,44 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
-public class CreateRecipientCommand {
+@Controller
+public class CreateRecipient {
 
-  public final String nickname;
   public final FilesCommandSender sender;
   public final RealmResource realm;
 
-  public CreateRecipientCommand(
-    FilesCommandSender sender,
-    RealmResource realm,
-    String nickname
-  ) {
-    this.nickname = nickname;
+  @Inject
+  public CreateRecipient(FilesCommandSender sender, RealmResource realm) {
     this.sender = sender;
     this.realm = realm;
   }
 
-  public void execute() {
+  @Secured(SecurityRule.IS_ANONYMOUS)
+  @Post("/recipients/create")
+  public HttpResponse<CreateRecipientCommandResponse> createRecipient(
+    @Body CreateRecipientCommand command
+  ) {
     var newUser = new UserRepresentation();
     newUser.setEnabled(true);
-    newUser.setUsername(nickname);
+    newUser.setUsername(command.nickname());
     // newUser.setEmail("some@mail.ru");
     // newUser.setAttributes(
     //   Collections.singletonMap("origin", Arrays.asList("demo"))
     // );
-    newUser.setCredentials(List.of(generatePassword()));
+    var password = generateCommonLangPassword();
+    newUser.setCredentials(List.of(passwordRepresentation(password)));
     var newUserResponse = realm.users().create(newUser);
     CompletableFuture.runAsync(
-      () -> sender.sendCreateBucketCommand(new CreateBucketCommand(nickname)),
+      () ->
+        sender.sendCreateBucketCommand(
+          new CreateBucketCommand(command.nickname())
+        ),
       Executors.newSingleThreadExecutor()
     );
+    return HttpResponse.ok(new CreateRecipientCommandResponse(password));
   }
 
-  private CredentialRepresentation generatePassword() {
-    var password = generateCommonLangPassword();
+  private CredentialRepresentation passwordRepresentation(String password) {
     CredentialRepresentation credential = new CredentialRepresentation();
     credential.setTemporary(false);
     credential.setType(CredentialRepresentation.PASSWORD);
@@ -75,4 +87,10 @@ public class CreateRecipientCommand {
       .toString();
     return password;
   }
+
+  @Serdeable
+  public static record CreateRecipientCommand(String nickname) {}
+
+  @Serdeable
+  public static record CreateRecipientCommandResponse(String password) {}
 }
