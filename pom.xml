@@ -12,8 +12,8 @@
   </parent>
   <properties>
     <packaging>jar</packaging>
-    <jdk.version>21</jdk.version>
-    <release.version>21</release.version>
+    <jdk.version>25</jdk.version>
+    <release.version>25</release.version>
     <micronaut.version>4.10.2</micronaut.version>
     <micronaut.runtime>netty</micronaut.runtime>
     <micronaut.test.resources.enabled>true</micronaut.test.resources.enabled>
@@ -108,11 +108,6 @@
     <dependency>
       <groupId>io.micronaut.security</groupId>
       <artifactId>micronaut-security-oauth2</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.micronaut.serde</groupId>
-      <artifactId>micronaut-serde-jackson</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -304,6 +299,16 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+          <groupId>org.graalvm.buildtools</groupId>
+          <artifactId>native-maven-plugin</artifactId>
+          <version>0.11.3</version>
+          <configuration>
+              <buildArgs>
+                  <buildArg>--initialize-at-build-time=io.micronaut.context.ApplicationContextConfigurer$1</buildArg>
+              </buildArgs>
+          </configuration>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
