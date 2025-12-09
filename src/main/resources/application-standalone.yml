@@ -4,6 +4,7 @@ datasources:
     username: ${JDBC_USER:`postgres`}
     password: ${JDBC_PASSWORD:`postgres`}
     driverClassName: 'org.postgresql.Driver'
+    maximumPoolSize: 3
 logger:
   levels:
     io.github.opendonationassistant: INFO
