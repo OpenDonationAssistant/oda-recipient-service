@@ -17,14 +17,15 @@ public class OtpCacheConfiguration {
   @Bean
   @Requires(env = "standalone")
   public Map<String, String> otpCache(RemoteCacheManager cacheManager) {
-    return cacheManager
-      .getCache(CACHE_NAME)
-      .withDataFormat(
-        DataFormat.builder()
-          .keyMarshaller(new UTF8StringMarshaller())
-          .valueMarshaller(new UTF8StringMarshaller())
-          .build()
-      );
+    return new HashMap<>();
+    // return cacheManager
+    //   .getCache(CACHE_NAME)
+    //   .withDataFormat(
+    //     DataFormat.builder()
+    //       .keyMarshaller(new UTF8StringMarshaller())
+    //       .valueMarshaller(new UTF8StringMarshaller())
+    //       .build()
+    //   );
   }
 
   @Bean
