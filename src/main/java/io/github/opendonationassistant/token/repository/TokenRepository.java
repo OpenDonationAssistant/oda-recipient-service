@@ -48,6 +48,7 @@ public class TokenRepository {
     return switch (data.system().toLowerCase()) {
       case "donatepay" -> new DonatePayToken(data, repository);
       case "donationalerts" -> new DonationAlertsToken(data, repository);
+      case "donatex" -> new DonateXToken(data, repository);
       default -> new GenericToken(data, repository);
     };
   }
