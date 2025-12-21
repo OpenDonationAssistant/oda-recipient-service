@@ -21,18 +21,18 @@ public class DonatersCacheConfiguration {
   public Map<String, DailyContribution> donatersCache(
     RemoteCacheManager cacheManager
   ) {
-    return new HashMap<>();
-    // return cacheManager
-    //   .getCache(DONATERS_CACHE_NAME)
-    //   .withDataFormat(
-    //     DataFormat
-    //       .builder()
-    //       .keyMarshaller(new UTF8StringMarshaller())
-    //       .valueMarshaller(
-    //         new SerdeableEntryMarshaller(DailyContribution.class)
-    //       )
-    //       .build()
-    //   );
+    // return new HashMap<>();
+    return cacheManager
+      .getCache(DONATERS_CACHE_NAME)
+      .withDataFormat(
+        DataFormat
+          .builder()
+          .keyMarshaller(new UTF8StringMarshaller())
+          .valueMarshaller(
+            new SerdeableEntryMarshaller(DailyContribution.class)
+          )
+          .build()
+      );
   }
 
   @Bean
