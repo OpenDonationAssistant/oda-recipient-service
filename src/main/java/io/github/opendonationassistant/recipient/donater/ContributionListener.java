@@ -4,7 +4,7 @@ import static io.github.opendonationassistant.rabbit.Queue.Payments.CONTRIBUTION
 
 import io.github.opendonationassistant.commons.Amount;
 import io.github.opendonationassistant.commons.logging.ODALogger;
-import io.github.opendonationassistant.events.CompletedPaymentNotification;
+import io.github.opendonationassistant.events.history.event.HistoryItemEvent;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.rabbitmq.annotation.Queue;
 import io.micronaut.rabbitmq.annotation.RabbitListener;
@@ -37,21 +37,27 @@ public class ContributionListener {
   }
 
   @Queue(CONTRIBUTIONS)
-  public void listen(CompletedPaymentNotification payment) {
+  public void listen(HistoryItemEvent payment) {
     log.info("Received notification", Map.of("payment", payment));
     String recipientId = payment.recipientId();
+    if (payment.type() != "payment") {
+      return;
+    }
     String nickname = payment.nickname();
-    if (StringUtils.isEmpty(nickname)) {
+    if (nickname == null || nickname.isEmpty()) {
+      return;
+    }
+    Amount amount = payment.amount();
+    if (amount == null) {
       return;
     }
     ZonedDateTime timestamp = payment
-      .authorizationTimestamp()
+      .timestamp()
       .atZone(ZoneId.systemDefault());
     int month = timestamp.get(ChronoField.MONTH_OF_YEAR);
     int year = timestamp.get(ChronoField.YEAR);
     var month_key = "%d_%d".formatted(year, month);
     var year_key = "%d".formatted(year);
-    Amount amount = payment.amount();
     updatePeriodContribution(nickname, amount, recipientId, year_key);
     updatePeriodContribution(nickname, amount, recipientId, month_key);
     updateDaily(nickname, amount, recipientId);

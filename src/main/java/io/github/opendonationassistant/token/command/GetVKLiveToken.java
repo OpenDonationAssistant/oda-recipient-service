@@ -57,13 +57,17 @@ public class GetVKLiveToken extends BaseController {
     return vklive
       .getToken(credentials, params)
       .thenApply(response -> {
-        var token = repository.create(
-          response.accessToken(),
-          "accessToken",
-          owner.get(),
-          "VKLive"
-        );
-        token.save();
+        repository
+          .create(response.accessToken(), "accessToken", owner.get(), "VKLive")
+          .save();
+        repository
+          .create(
+            response.refreshToken(),
+            "refreshToken",
+            owner.get(),
+            "VKLive"
+          )
+          .save();
         return HttpResponse.ok();
       });
   }

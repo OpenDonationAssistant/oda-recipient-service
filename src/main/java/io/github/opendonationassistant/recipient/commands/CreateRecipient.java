@@ -1,7 +1,7 @@
 package io.github.opendonationassistant.recipient.commands;
 
-import io.github.opendonationassistant.events.files.CreateBucketCommand;
-import io.github.opendonationassistant.events.files.FilesCommandSender;
+import io.github.opendonationassistant.events.files.FilesCommand;
+import io.github.opendonationassistant.events.files.FilesFacade;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -25,12 +25,12 @@ import org.keycloak.representations.idm.UserRepresentation;
 @Controller
 public class CreateRecipient {
 
-  private final FilesCommandSender sender;
+  private final FilesFacade filesFacade;
   private final RealmResource realm;
 
   @Inject
-  public CreateRecipient(FilesCommandSender sender, RealmResource realm) {
-    this.sender = sender;
+  public CreateRecipient(FilesFacade filesFacade, RealmResource realm) {
+    this.filesFacade = filesFacade;
     this.realm = realm;
   }
 
@@ -51,8 +51,8 @@ public class CreateRecipient {
 
     CompletableFuture.runAsync(
       () ->
-        sender.sendCreateBucketCommand(
-          new CreateBucketCommand(command.nickname())
+        filesFacade.sendCommand(
+          new FilesCommand.CreateBucketCommand(command.nickname())
         ),
       Executors.newSingleThreadExecutor()
     );

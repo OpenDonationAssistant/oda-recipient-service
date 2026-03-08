@@ -59,13 +59,17 @@ public class GetTwitchToken extends BaseController {
     return twitch
       .getToken(params)
       .thenApply(response -> {
-        var token = repository.create(
-          response.accessToken(),
-          "accessToken",
-          owner.get(),
-          "Twitch"
-        );
-        token.save();
+        repository
+          .create(response.accessToken(), "accessToken", owner.get(), "Twitch")
+          .save();
+        repository
+          .create(
+            response.refreshToken(),
+            "refreshToken",
+            owner.get(),
+            "Twitch"
+          )
+          .save();
         return HttpResponse.ok();
       });
   }
