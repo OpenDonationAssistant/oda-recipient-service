@@ -1,3 +1,6 @@
+# ODA Recipient Service
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/OpenDonationAssistant/oda-recipient-service)
+
 ## Micronaut 4.1.0 Documentation
 
 - [User Guide](https://docs.micronaut.io/4.1.0/guide/index.html)
