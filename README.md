@@ -1,42 +1,62 @@
 # ODA Recipient Service
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/OpenDonationAssistant/oda-recipient-service)
 
-## Micronaut 4.1.0 Documentation
+## Running with Docker
 
-- [User Guide](https://docs.micronaut.io/4.1.0/guide/index.html)
-- [API Reference](https://docs.micronaut.io/4.1.0/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/4.1.0/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
----
+The Docker image is available from GitHub Container Registry:
 
-- [Micronaut Maven Plugin documentation](https://micronaut-projects.github.io/micronaut-maven-plugin/latest/)
-## Feature security-oauth2 documentation
+```bash
+docker pull ghcr.io/opendonationassistant/oda-recipient-service:latest
+```
 
-- [Micronaut Security OAuth 2.0 documentation](https://micronaut-projects.github.io/micronaut-security/latest/guide/index.html#oauth)
+### Required Environment Variables
 
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `RABBITMQ_HOST` | RabbitMQ server hostname | `localhost` |
+| `INFINISPAN_HOST` | Infinispan server hostname | `127.0.0.1` |
+| `INFINISPAN_PORT` | Infinispan server port | `11222` |
+| `INFINISPAN_USER` | Infinispan username | `admin` |
+| `INFINISPAN_PASSWORD` | Infinispan password | `password` |
+| `JDBC_URL` | PostgreSQL JDBC URL | `jdbc:postgresql://localhost/postgres?currentSchema=recipient` |
+| `JDBC_USER` | PostgreSQL username | `postgres` |
+| `JDBC_PASSWORD` | PostgreSQL password | `postgres` |
 
-## Feature maven-enforcer-plugin documentation
+### Running the Container
 
-- [https://maven.apache.org/enforcer/maven-enforcer-plugin/](https://maven.apache.org/enforcer/maven-enforcer-plugin/)
+```bash
+docker run -d \
+  --name oda-recipient-service \
+  -e RABBITMQ_HOST=<rabbitmq-host> \
+  -e INFINISPAN_HOST=<infinispan-host> \
+  -e INFINISPAN_PORT=11222 \
+  -e INFINISPAN_USER=admin \
+  -e INFINISPAN_PASSWORD=<infinispan-password> \
+  -e JDBC_URL=jdbc:postgresql://<postgres-host>:5432/postgres?currentSchema=recipient \
+  -e JDBC_USER=postgres \
+  -e JDBC_PASSWORD=<postgres-password> \
+  ghcr.io/opendonationassistant/oda-recipient-service:latest
+```
 
+### Docker Compose Example
 
-## Feature security-jwt documentation
-
-- [Micronaut Security JWT documentation](https://micronaut-projects.github.io/micronaut-security/latest/guide/index.html)
-
-
-## Feature micronaut-aot documentation
-
-- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
-
-
-## Feature serialization-jackson documentation
-
-- [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
-
-
-## Feature http-client documentation
-
-- [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#nettyHttpClient)
-
+```yaml
+version: '3.8'
+services:
+  oda-recipient-service:
+    image: ghcr.io/opendonationassistant/oda-recipient-service:latest
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - INFINISPAN_HOST=infinispan
+      - INFINISPAN_PORT=11222
+      - INFINISPAN_USER=admin
+      - INFINISPAN_PASSWORD=password
+      - JDBC_URL=jdbc:postgresql://postgres:5432/postgres?currentSchema=recipient
+      - JDBC_USER=postgres
+      - JDBC_PASSWORD=postgres
+    depends_on:
+      - rabbitmq
+      - postgres
+      - infinispan
+```
 
