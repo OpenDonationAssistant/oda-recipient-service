@@ -5,7 +5,6 @@ import static io.github.opendonationassistant.rabbit.Queue.Payments.CONTRIBUTION
 import io.github.opendonationassistant.commons.Amount;
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.events.history.event.HistoryItemEvent;
-import io.micronaut.core.util.StringUtils;
 import io.micronaut.rabbitmq.annotation.Queue;
 import io.micronaut.rabbitmq.annotation.RabbitListener;
 import jakarta.inject.Inject;
@@ -41,14 +40,17 @@ public class ContributionListener {
     log.info("Received notification", Map.of("payment", payment));
     String recipientId = payment.recipientId();
     if (payment.type() != "payment") {
+      log.debug("Payment is not payment", Map.of());
       return;
     }
     String nickname = payment.nickname();
     if (nickname == null || nickname.isEmpty()) {
+      log.debug("Missing nickname", Map.of());
       return;
     }
     Amount amount = payment.amount();
     if (amount == null) {
+      log.debug("Missing amount", Map.of());
       return;
     }
     ZonedDateTime timestamp = payment
@@ -58,9 +60,13 @@ public class ContributionListener {
     int year = timestamp.get(ChronoField.YEAR);
     var month_key = "%d_%d".formatted(year, month);
     var year_key = "%d".formatted(year);
+    log.debug("Update year", Map.of());
     updatePeriodContribution(nickname, amount, recipientId, year_key);
+    log.debug("Update month", Map.of());
     updatePeriodContribution(nickname, amount, recipientId, month_key);
+    log.debug("Update daily", Map.of());
     updateDaily(nickname, amount, recipientId);
+    log.debug("Send reload", Map.of());
     commandSender.send(recipientId);
   }
 
