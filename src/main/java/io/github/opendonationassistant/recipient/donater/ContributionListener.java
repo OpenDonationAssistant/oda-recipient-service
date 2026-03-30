@@ -39,7 +39,7 @@ public class ContributionListener {
   public void listen(HistoryItemEvent payment) {
     log.info("Received notification", Map.of("payment", payment));
     String recipientId = payment.recipientId();
-    if (payment.type() != "payment") {
+    if (!"payment".equals(payment.type())) {
       log.debug("Payment is not payment", Map.of());
       return;
     }
