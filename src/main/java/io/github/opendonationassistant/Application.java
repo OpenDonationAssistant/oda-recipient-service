@@ -6,6 +6,7 @@ import io.github.opendonationassistant.rabbit.Queue;
 import io.micronaut.context.ApplicationContextBuilder;
 import io.micronaut.context.ApplicationContextConfigurer;
 import io.micronaut.context.annotation.ContextConfigurer;
+import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.rabbitmq.connect.ChannelInitializer;
 import io.micronaut.runtime.Micronaut;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @OpenAPIDefinition(info = @Info(title = "oda-recipient-service"))
+@Factory
 public class Application {
 
   public static void main(String[] args) {
