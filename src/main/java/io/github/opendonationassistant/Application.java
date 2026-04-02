@@ -36,11 +36,11 @@ public class Application {
     var contributions = new Queue("payments_for_contributions");
     return new AMQPConfiguration(
       List.of(
-        Exchange.Exchange(
-          "history",
-          Map.of("event.HistoryItemEvent", contributions)
-        ),
-        Exchange.Exchange("recipient", Map.of("command", contributions))
+        // Exchange.Exchange(
+        //   "history",
+        //   Map.of("event.HistoryItemEvent", contributions)
+        // ),
+        Exchange.Exchange("history", Map.of("recipient", contributions))
       )
     );
   }
