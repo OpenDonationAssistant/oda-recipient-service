@@ -35,7 +35,7 @@ public class ContributionListener {
     this.dailyContribution = dailyContribution;
   }
 
-  @Queue(CONTRIBUTIONS)
+  @Queue("recipient.events")
   public void listen(HistoryItemEvent payment) {
     log.info("Received notification", Map.of("payment", payment));
     String recipientId = payment.recipientId();

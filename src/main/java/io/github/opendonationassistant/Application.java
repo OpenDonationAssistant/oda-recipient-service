@@ -35,7 +35,7 @@ public class Application {
 
   @Singleton
   public ChannelInitializer rabbitConfiguration() {
-    var contributions = new Queue("payments_for_contributions");
+    var contributions = new Queue("recipient.events");
     return new AMQPConfiguration(
       List.of(
         // Exchange.Exchange(
