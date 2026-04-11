@@ -1,6 +1,7 @@
 package io.github.opendonationassistant.integration.keycloak;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.PathVariable;
@@ -10,10 +11,10 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-
 import org.keycloak.representations.idm.UserRepresentation;
 
 @Client("keycloak")
+@Introspected(classes = { UserRepresentation.class })
 public interface KeycloakClient {
   @Post(
     value = "/realms/ODA/protocol/openid-connect/token",
@@ -36,5 +37,8 @@ public interface KeycloakClient {
   );
 
   @Put("/realms/ODA/users/{user-id}/send-verify-email")
-  CompletableFuture<Void> sendVerifyEmail(@PathVariable String userId, @Body Map<String, String> params);
+  CompletableFuture<Void> sendVerifyEmail(
+    @PathVariable String userId,
+    @Body Map<String, String> params
+  );
 }
