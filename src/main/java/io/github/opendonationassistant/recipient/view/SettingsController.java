@@ -6,7 +6,9 @@ import io.github.opendonationassistant.recipient.repository.SettingsRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
@@ -24,6 +26,7 @@ public class SettingsController extends BaseController {
   }
 
   @Get("/recipients/settings")
+  @Secured(SecurityRule.IS_AUTHENTICATED)
   @ApiResponse(
     responseCode = "200",
     description = "Recipient Settings with Features",
