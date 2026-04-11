@@ -23,7 +23,7 @@ public class SettingsController extends BaseController {
     this.repository = repository;
   }
 
-  @Get
+  @Get("/recipients/settings")
   @ApiResponse(
     responseCode = "200",
     description = "Recipient Settings with Features",
