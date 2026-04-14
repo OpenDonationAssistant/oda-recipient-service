@@ -1,6 +1,11 @@
+problem:
+  stack-trace: false
 micronaut:
   application:
     name: oda-recipient-service
+  serde:
+    serialization:
+      inclusion: ALWAYS
   executors:
     rabbit:
       nThreads: 1
