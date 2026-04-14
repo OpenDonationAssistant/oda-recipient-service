@@ -12,7 +12,8 @@ import java.util.List;
 public record SettingsData(
   @Id String id,
   String recipientId,
-  @MappedProperty(type = DataType.JSON) List<Feature> features
+  @MappedProperty(type = DataType.JSON) List<Feature> features,
+  @MappedProperty(type = DataType.JSON) List<LogLevels> logLevels
 ) {
   @Serdeable
   public static record Feature(String name, FeatureStatus status) {}
@@ -20,6 +21,19 @@ public record SettingsData(
   @Serdeable
   public static enum FeatureStatus {
     ENABLED,
+    DISABLED,
+  }
+
+  @Serdeable
+  public static record LogLevels(String name, LogLevel level){}
+
+  @Serdeable
+  public static enum LogLevel {
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
     DISABLED,
   }
 }

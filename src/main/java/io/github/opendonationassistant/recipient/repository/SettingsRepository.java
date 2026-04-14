@@ -27,6 +27,7 @@ public class SettingsRepository {
     return new SettingsData(
       Generators.timeBasedEpochGenerator().generate().toString(),
       recipientId,
+      List.of(),
       List.of()
     );
   }

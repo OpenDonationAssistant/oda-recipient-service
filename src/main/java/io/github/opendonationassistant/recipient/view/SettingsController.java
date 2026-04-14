@@ -13,6 +13,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -45,31 +46,42 @@ public class SettingsController extends BaseController {
     }
     return CompletableFuture.supplyAsync(() -> {
       final Settings settings = repository.get(ownerId.get());
-      return HttpResponse.ok(
-        new SettingsDto(
-          settings.data().id(),
-          ownerId.get(),
-          settings
-            .data()
-            .features()
-            .stream()
-            .map(feature ->
-              new Feature(
-                feature.name(),
-                FeatureStatus.valueOf(feature.status().name())
-              )
-            )
-            .toList()
-        )
-      );
+      return HttpResponse.ok(asDto(ownerId, settings));
     });
+  }
+
+  private SettingsDto asDto(Optional<String> ownerId, final Settings settings) {
+    return new SettingsDto(
+      settings.data().id(),
+      ownerId.get(),
+      settings
+        .data()
+        .features()
+        .stream()
+        .map(feature ->
+          new Feature(
+            feature.name(),
+            FeatureStatus.valueOf(feature.status().name())
+          )
+        )
+        .toList(),
+      settings
+        .data()
+        .logLevels()
+        .stream()
+        .map(level ->
+          new LogLevels(level.name(), LogLevel.valueOf(level.level().name()))
+        )
+        .toList()
+    );
   }
 
   @Serdeable
   public record SettingsDto(
     String id,
     String recipientId,
-    List<Feature> features
+    List<Feature> features,
+    List<LogLevels> logLevels
   ) {}
 
   @Serdeable
@@ -78,6 +90,19 @@ public class SettingsController extends BaseController {
   @Serdeable
   public static enum FeatureStatus {
     ENABLED,
+    DISABLED,
+  }
+
+  @Serdeable
+  public static record LogLevels(String name, LogLevel level) {}
+
+  @Serdeable
+  public static enum LogLevel {
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
     DISABLED,
   }
 }
