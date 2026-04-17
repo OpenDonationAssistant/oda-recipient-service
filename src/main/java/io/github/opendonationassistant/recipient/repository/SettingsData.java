@@ -25,7 +25,7 @@ public record SettingsData(
   }
 
   @Serdeable
-  public static record LogLevels(String name, LogLevel level){}
+  public static record LogLevels(String name, LogLevel level) {}
 
   @Serdeable
   public static enum LogLevel {
