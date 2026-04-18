@@ -25,6 +25,9 @@ micronaut:
 endpoints:
   flyway:
     enabled: true
+datasources:
+  default:
+    schema: 'recipient'
 flyway:
   datasources:
     default:
