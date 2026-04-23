@@ -8,4 +8,10 @@ import java.util.List;
 @JdbcRepository(dialect = Dialect.POSTGRES)
 public interface TokenDataRepository extends CrudRepository<TokenData, String> {
   public List<TokenData> findByRecipientId(String recipientId);
+
+  public List<TokenData> findByRecipientIdAndSystemAndType(
+    String recipientId,
+    String system,
+    String type
+  );
 }

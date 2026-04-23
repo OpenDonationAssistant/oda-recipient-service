@@ -24,6 +24,18 @@ public class TokenRepository {
       .toList();
   }
 
+  public List<Token> findByRecipientIdAndSystemAndType(
+    String recipientId,
+    String system,
+    String type
+  ) {
+    return repository
+      .findByRecipientIdAndSystemAndType(recipientId, system, type)
+      .stream()
+      .map(this::convert)
+      .toList();
+  }
+
   public Token create(
     String token,
     String type,
