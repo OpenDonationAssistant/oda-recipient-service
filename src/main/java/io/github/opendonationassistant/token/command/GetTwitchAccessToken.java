@@ -8,7 +8,9 @@ import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ public class GetTwitchAccessToken extends BaseController {
   }
 
   @Post("/recipients/tokens/get-twitch-access-token")
+  @Secured(SecurityRule.IS_AUTHENTICATED)
   public CompletableFuture<HttpResponse<AccessToken>> getTwitchAccessToken(
     Authentication auth
   ) {
