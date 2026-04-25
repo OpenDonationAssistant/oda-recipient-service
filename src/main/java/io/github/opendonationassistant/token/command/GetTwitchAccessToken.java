@@ -12,6 +12,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +40,17 @@ public class GetTwitchAccessToken extends BaseController {
 
   @Post("/recipients/tokens/get-twitch-access-token")
   @Secured(SecurityRule.IS_AUTHENTICATED)
+  @ApiResponse(
+    description = "Twitch access token",
+    responseCode = "200",
+    content = @io.swagger.v3.oas.annotations.media.Content(
+      mediaType = "application/json",
+      schema = @io.swagger.v3.oas.annotations.media.Schema(
+        implementation = GetTwitchAccessToken.AccessToken.class
+      )
+    )
+  )
+  @ApiResponse(responseCode = "401", description = "Unauthorized or not found")
   public CompletableFuture<HttpResponse<AccessToken>> getTwitchAccessToken(
     Authentication auth
   ) {
