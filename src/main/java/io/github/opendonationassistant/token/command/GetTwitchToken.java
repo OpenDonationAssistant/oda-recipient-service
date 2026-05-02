@@ -60,9 +60,6 @@ public class GetTwitchToken extends BaseController {
       .getToken(params)
       .thenApply(response -> {
         repository
-          .create(response.accessToken(), "accessToken", owner.get(), "Twitch")
-          .save();
-        repository
           .create(
             response.refreshToken(),
             "refreshToken",

@@ -1,6 +1,7 @@
 package io.github.opendonationassistant.recipient.repository;
 
 import com.fasterxml.uuid.Generators;
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.List;
@@ -19,7 +20,8 @@ public class SettingsRepository {
     return new Settings(
       repository
         .findByRecipientId(recipientId)
-        .orElseGet(() -> defaultSettings(recipientId))
+        .orElseGet(() -> defaultSettings(recipientId)),
+      repository
     );
   }
 

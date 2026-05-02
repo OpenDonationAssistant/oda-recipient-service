@@ -12,6 +12,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.inject.Inject;
 import java.util.Base64;
 import java.util.HashMap;
@@ -35,8 +36,10 @@ public class GetVKLiveToken extends BaseController {
   ) {
     this.vklive = vklive;
     this.redirect = redirect;
-    this.credentials = Base64.getEncoder()
-      .encodeToString((clientId + ":" + clientSecret).getBytes());
+    this.credentials =
+      "Basic " +
+      Base64.getEncoder()
+        .encodeToString((clientId + ":" + clientSecret).getBytes());
     this.repository = repository;
   }
 
@@ -57,9 +60,6 @@ public class GetVKLiveToken extends BaseController {
     return vklive
       .getToken(credentials, params)
       .thenApply(response -> {
-        repository
-          .create(response.accessToken(), "accessToken", owner.get(), "VKLive")
-          .save();
         repository
           .create(
             response.refreshToken(),

@@ -1,5 +1,6 @@
 package io.github.opendonationassistant.integration.vklive;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Header;
@@ -8,12 +9,12 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Client("vklive")
 public interface VKLiveClient {
   @Post(
     value = "/oauth/server/token",
+    produces = MediaType.APPLICATION_FORM_URLENCODED,
     consumes = MediaType.APPLICATION_FORM_URLENCODED
   )
   CompletableFuture<GetAccessRecordResponse> getToken(
@@ -23,9 +24,7 @@ public interface VKLiveClient {
 
   @Serdeable
   public static record GetAccessRecordResponse(
-    @JsonProperty("access_token")
-    String accessToken,
-    @JsonProperty("refresh_token")
-    String refreshToken
+    @JsonProperty("access_token") String accessToken,
+    @JsonProperty("refresh_token") String refreshToken
   ) {}
 }
