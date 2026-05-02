@@ -1,7 +1,6 @@
 package io.github.opendonationassistant.recipient.repository;
 
 import com.fasterxml.uuid.Generators;
-import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.List;
