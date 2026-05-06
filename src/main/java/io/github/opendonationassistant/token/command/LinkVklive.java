@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
-public class GetVKLiveToken extends BaseController {
+public class LinkVklive extends BaseController {
 
   private final VKLiveClient vklive;
   private final String redirect;
@@ -27,7 +27,7 @@ public class GetVKLiveToken extends BaseController {
   private final TokenRepository repository;
 
   @Inject
-  public GetVKLiveToken(
+  public LinkVklive(
     VKLiveClient vklive,
     @Value("${vklive.redirect}") String redirect,
     @Value("${vklive.client.id}") String clientId,
@@ -43,7 +43,7 @@ public class GetVKLiveToken extends BaseController {
     this.repository = repository;
   }
 
-  @Post("/recipients/tokens/getvklivetoken")
+  @Post("/recipients/commands/link-vklive")
   @Secured(SecurityRule.IS_AUTHENTICATED)
   public CompletableFuture<HttpResponse<Void>> getVKLiveToken(
     Authentication auth,

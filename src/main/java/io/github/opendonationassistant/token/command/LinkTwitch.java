@@ -1,77 +1,70 @@
 package io.github.opendonationassistant.token.command;
 
-import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.token.client.DonationAlertsClient;
+import io.github.opendonationassistant.integration.twitch.TwitchClient;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
-import io.micronaut.scheduling.TaskExecutors;
-import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
-public class GetDonationAlertsToken extends BaseController {
+public class LinkTwitch extends BaseController {
 
-  private final DonationAlertsClient client;
+  private final TwitchClient twitch;
+  private final TokenRepository repository;
+  private final String redirect;
   private final String clientId;
   private final String clientSecret;
-  private final String redirect;
-  private final TokenRepository repository;
-  private final ODALogger log = new ODALogger(this);
 
   @Inject
-  public GetDonationAlertsToken(
-    DonationAlertsClient client,
+  public LinkTwitch(
+    TwitchClient twitch,
     TokenRepository repository,
-    @Value("${donationalerts.id}") String clientId,
-    @Value("${donationalerts.secret}") String clientSecret,
-    @Value("${donationalerts.redirect}") String redirect
+    @Value("${twitch.redirect}") String redirect,
+    @Value("${twitch.client.id}") String clientId,
+    @Value("${twitch.client.secret}") String clientSecret
   ) {
-    this.client = client;
+    this.twitch = twitch;
     this.repository = repository;
+    this.redirect = redirect;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
-    this.redirect = redirect;
   }
 
-  @Post("/recipients/tokens/getdonationalertstoken")
+  @Post("/recipients/commands/link-twitch")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  @ExecuteOn(TaskExecutors.BLOCKING)
-  public CompletableFuture<HttpResponse<Void>> getDonationAlertsToken(
+  public CompletableFuture<HttpResponse<Void>> linkTwitch(
     Authentication auth,
-    @Body GetDonationAlertsTokenCommand command
+    @Body GetTwitchTokenCommand command
   ) {
     var owner = getOwnerId(auth);
     if (owner.isEmpty()) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
     var params = new HashMap<String, String>();
-    params.put("grant_type", "authorization_code");
     params.put("client_id", clientId);
     params.put("client_secret", clientSecret);
+    params.put("grant_type", "authorization_code");
     params.put("code", command.authorizationCode());
     params.put("redirect_uri", redirect);
-    log.info("Issue new DA token", Map.of("recipientId", owner.get()));
-    return client
+    return twitch
       .getToken(params)
       .thenApply(response -> {
         repository
           .create(
-            response.accessToken(),
-            "accessToken",
+            response.refreshToken(),
+            "refreshToken",
             owner.get(),
-            "DonationAlerts"
+            "Twitch"
           )
           .save();
         return HttpResponse.ok();
@@ -79,7 +72,5 @@ public class GetDonationAlertsToken extends BaseController {
   }
 
   @Serdeable
-  public static record GetDonationAlertsTokenCommand(
-    String authorizationCode
-  ) {}
+  public static record GetTwitchTokenCommand(String authorizationCode) {}
 }

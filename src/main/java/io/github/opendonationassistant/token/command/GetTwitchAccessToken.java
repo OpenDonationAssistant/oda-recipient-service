@@ -2,7 +2,6 @@ package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.twitch.TwitchClient;
-import io.github.opendonationassistant.integration.twitch.TwitchClient.GetAccessRecordResponse;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
