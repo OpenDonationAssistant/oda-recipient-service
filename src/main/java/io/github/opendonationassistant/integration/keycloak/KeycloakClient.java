@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import org.keycloak.representations.idm.UserRepresentation;
 
 @Client("keycloak")
-@SerdeImport(value = UserRepresentation.class)
+// @SerdeImport(value = UserRepresentation.class)
 public interface KeycloakClient {
   @Post(
     value = "/realms/ODA/protocol/openid-connect/token",
