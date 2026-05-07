@@ -42,7 +42,7 @@ public class LinkKick extends BaseController {
 
   @Post("/recipients/commands/link-kick")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  public CompletableFuture<HttpResponse<Void>> linkDiscord(
+  public CompletableFuture<HttpResponse<Void>> linkKick(
     Authentication auth,
     @Body LinkKickCommand command
   ) {

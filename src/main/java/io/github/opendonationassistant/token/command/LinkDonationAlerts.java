@@ -48,7 +48,7 @@ public class LinkDonationAlerts extends BaseController {
   @Post("/recipients/commands/link-donationalerts")
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @ExecuteOn(TaskExecutors.BLOCKING)
-  public CompletableFuture<HttpResponse<Void>> getDonationAlertsToken(
+  public CompletableFuture<HttpResponse<Void>> linkDonationAlerts(
     Authentication auth,
     @Body GetDonationAlertsTokenCommand command
   ) {

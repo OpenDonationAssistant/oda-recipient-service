@@ -45,7 +45,7 @@ public class LinkVklive extends BaseController {
 
   @Post("/recipients/commands/link-vklive")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  public CompletableFuture<HttpResponse<Void>> getVKLiveToken(
+  public CompletableFuture<HttpResponse<Void>> linkVKlive(
     Authentication auth,
     @Body GetVKLiveTokenCommand command
   ) {
