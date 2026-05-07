@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 public interface DiscordClient {
   @Post(
     value = "/api/oauth2/token",
-    produces = MediaType.APPLICATION_FORM_URLENCODED,
+    produces = MediaType.APPLICATION_JSON,
     consumes = MediaType.APPLICATION_FORM_URLENCODED
   )
   CompletableFuture<GetAccessRecordResponse> getToken(
