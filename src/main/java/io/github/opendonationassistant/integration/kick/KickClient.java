@@ -14,8 +14,8 @@ import io.micronaut.serde.annotation.Serdeable;
 public interface KickClient {
   @Post(
     value = "/oauth/token",
-    produces = "application/json",
-    consumes = "application/x-www-form-urlencoded"
+    consumes = "application/json",
+    produces = "application/x-www-form-urlencoded"
   )
   public CompletableFuture<GetAccessRecordResponse> getToken(
     @Body Map<String, String> request
