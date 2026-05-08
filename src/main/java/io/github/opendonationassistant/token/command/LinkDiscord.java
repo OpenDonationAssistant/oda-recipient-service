@@ -23,8 +23,9 @@ public class LinkDiscord extends BaseController {
 
   private final TokenRepository tokenRepository;
   private final DiscordClient client;
-  private final String credentials;
   private final String redirect;
+  private final String clientSecret;
+  private final String clientId;
 
   @Inject
   public LinkDiscord(
@@ -37,10 +38,8 @@ public class LinkDiscord extends BaseController {
     this.client = client;
     this.tokenRepository = tokenRepository;
     this.redirect = redirect;
-    this.credentials =
-      "Basic " +
-      Base64.getEncoder()
-        .encodeToString((clientId + ":" + clientSecret).getBytes());
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
   }
 
   @Post("/recipients/commands/link-discord")
@@ -57,8 +56,10 @@ public class LinkDiscord extends BaseController {
     params.put("grant_type", "authorization_code");
     params.put("code", command.authorizationCode());
     params.put("redirect_uri", redirect);
+    params.put("client_id", clientId);
+    params.put("client_secret", clientSecret);
     return client
-      .getToken(credentials, params)
+      .getToken(params)
       .thenApply(response -> {
         tokenRepository
           .create(
