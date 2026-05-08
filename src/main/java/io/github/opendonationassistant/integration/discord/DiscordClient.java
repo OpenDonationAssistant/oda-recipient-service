@@ -10,7 +10,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-@Client("vklive")
+@Client("discord")
 public interface DiscordClient {
   @Post(
     value = "/api/oauth2/token",
