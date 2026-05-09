@@ -22,24 +22,11 @@ import java.util.concurrent.CompletableFuture;
 public class LinkVklive extends BaseController {
 
   private final VKLiveClient vklive;
-  private final String redirect;
-  private final String credentials;
   private final TokenRepository repository;
 
   @Inject
-  public LinkVklive(
-    VKLiveClient vklive,
-    @Value("${vklive.redirect}") String redirect,
-    @Value("${vklive.client.id}") String clientId,
-    @Value("${vklive.client.secret}") String clientSecret,
-    TokenRepository repository
-  ) {
+  public LinkVklive(VKLiveClient vklive, TokenRepository repository) {
     this.vklive = vklive;
-    this.redirect = redirect;
-    this.credentials =
-      "Basic " +
-      Base64.getEncoder()
-        .encodeToString((clientId + ":" + clientSecret).getBytes());
     this.repository = repository;
   }
 
@@ -53,12 +40,8 @@ public class LinkVklive extends BaseController {
     if (owner.isEmpty()) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
-    var params = new HashMap<String, String>();
-    params.put("grant_type", "authorization_code");
-    params.put("code", command.authorizationCode());
-    params.put("redirect_uri", redirect);
     return vklive
-      .getToken(credentials, params)
+      .link(command.authorizationCode())
       .thenApply(response -> {
         repository
           .create(

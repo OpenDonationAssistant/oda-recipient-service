@@ -1,8 +1,14 @@
 package io.github.opendonationassistant.token.repository;
 
-public class VkliveToken extends GenericToken {
+import io.github.opendonationassistant.integration.vklive.VKLiveClient;
 
-  public VkliveToken(TokenData data, TokenDataRepository repository) {
-    super(data, repository);
+public class VkliveToken extends RefreshToken {
+
+  public VkliveToken(
+    VKLiveClient client,
+    TokenData data,
+    TokenDataRepository repository
+  ) {
+    super(client, data, repository);
   }
 }

@@ -1,8 +1,10 @@
 package io.github.opendonationassistant.token.repository;
 
-public class TwitchToken extends GenericToken {
+import io.github.opendonationassistant.integration.twitch.TwitchClient;
 
-  public TwitchToken(TokenData data, TokenDataRepository repository) {
-    super(data, repository);
+public class TwitchToken extends RefreshToken {
+
+  public TwitchToken(TwitchClient client, TokenData data, TokenDataRepository repository) {
+    super(client, data, repository);
   }
 }

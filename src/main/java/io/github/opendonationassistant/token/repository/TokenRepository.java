@@ -5,15 +5,27 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Singleton
 public class TokenRepository {
 
   private final TokenDataRepository repository;
+  private final List<TokenProvider> providers;
 
   @Inject
-  public TokenRepository(TokenDataRepository repository) {
+  public TokenRepository(
+    TokenDataRepository repository,
+    List<TokenProvider> providers
+  ) {
     this.repository = repository;
+    this.providers = providers;
+  }
+
+  public Optional<Token> findById(String id) {
+    return repository
+      .findById(id)
+      .map(this::convert);
   }
 
   public List<Token> findByRecipientId(String recipientId) {
@@ -57,11 +69,11 @@ public class TokenRepository {
   }
 
   private Token convert(TokenData data) {
-    return switch (data.system().toLowerCase()) {
-      case "donatepay" -> new DonatePayToken(data, repository);
-      case "donationalerts" -> new DonationAlertsToken(data, repository);
-      case "donatex" -> new DonateXToken(data, repository);
-      default -> new GenericToken(data, repository);
-    };
+    return providers
+      .stream()
+      .filter(provider -> provider.system().equals(data.system()))
+      .findFirst()
+      .map(provider -> provider.convert(data))
+      .orElseGet(() -> new GenericToken(data, repository));
   }
 }

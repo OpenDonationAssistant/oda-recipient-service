@@ -4,12 +4,17 @@ import jakarta.inject.Singleton;
 import java.util.Optional;
 
 @Singleton
-public class DonateXTokenRepository {
+public class DonateXTokenRepository implements TokenProvider<DonateXToken> {
 
   private final TokenDataRepository repository;
 
   public DonateXTokenRepository(TokenDataRepository repository) {
     this.repository = repository;
+  }
+
+  @Override
+  public String system() {
+    return "DonateX";
   }
 
   public Optional<DonateXToken> findById(String id) {

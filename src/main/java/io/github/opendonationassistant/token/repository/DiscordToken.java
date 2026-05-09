@@ -1,8 +1,14 @@
 package io.github.opendonationassistant.token.repository;
 
-public class DiscordToken extends GenericToken {
+import io.github.opendonationassistant.integration.discord.DiscordClient;
 
-  public DiscordToken(TokenData data, TokenDataRepository repository) {
-    super(data, repository);
+public class DiscordToken extends RefreshToken {
+
+  public DiscordToken(
+    DiscordClient client,
+    TokenData data,
+    TokenDataRepository repository
+  ) {
+    super(client, data, repository);
   }
 }

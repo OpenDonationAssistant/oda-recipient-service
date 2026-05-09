@@ -1,8 +1,14 @@
 package io.github.opendonationassistant.token.repository;
 
-public class KickToken extends GenericToken {
+import io.github.opendonationassistant.integration.kick.KickClient;
 
-  public KickToken(TokenData data, TokenDataRepository repository) {
-    super(data, repository);
+public class KickToken extends RefreshToken {
+
+  public KickToken(
+    KickClient oauth,
+    TokenData data,
+    TokenDataRepository repository
+  ) {
+    super(oauth, data, repository);
   }
 }
