@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.stcarolas.oda</groupId>
   <artifactId>oda-recipient-service</artifactId>
-  <version>0.9.0</version>
+  <version>0.10.0</version>
   <packaging>${packaging}</packaging>
 
   <parent>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>io.github.opendonationassistant</groupId>
       <artifactId>oda-rabbit-conf</artifactId>
-      <version>0.10.208</version>
+      <version>0.10.209</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.uuid</groupId>

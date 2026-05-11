@@ -12,6 +12,7 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -38,9 +39,32 @@ public class LinkKick extends BaseController {
     }
     return client
       .link(command.authorizationCode(), command.codeVerifier())
+      .thenCompose(response ->
+        client
+          .getUser(response.accessToken())
+          .thenApply(user -> {
+            record UserData(KickClient.KickUser user, String refreshToken) {}
+            return new UserData(user, response.refreshToken());
+          })
+      )
       .thenApply(response -> {
         tokenRepository
-          .create(response.refreshToken(), "refreshToken", owner.get(), "Kick")
+          .create(
+            response.refreshToken(),
+            "refreshToken",
+            owner.get(),
+            "Kick",
+            Map.of(
+              "id",
+              response.user().id(),
+              "name",
+              response.user().name(),
+              "email",
+              response.user().email(),
+              "avatar",
+              response.user().avatar()
+            )
+          )
           .save();
         return HttpResponse.ok();
       });

@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Singleton
@@ -23,9 +24,7 @@ public class TokenRepository {
   }
 
   public Optional<Token> findById(String id) {
-    return repository
-      .findById(id)
-      .map(this::convert);
+    return repository.findById(id).map(this::convert);
   }
 
   public List<Token> findByRecipientId(String recipientId) {
@@ -54,6 +53,16 @@ public class TokenRepository {
     String recipientId,
     String system
   ) {
+    return create(token, type, recipientId, system, new HashMap<>());
+  }
+
+  public Token create(
+    String token,
+    String type,
+    String recipientId,
+    String system,
+    Map<String, Object> settings
+  ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
     var data = new TokenData(
       id,
@@ -62,7 +71,7 @@ public class TokenRepository {
       recipientId,
       system,
       true,
-      new HashMap<>()
+      settings
     );
     repository.save(data);
     return convert(data);

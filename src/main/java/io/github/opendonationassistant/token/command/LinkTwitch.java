@@ -12,6 +12,7 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -38,13 +39,34 @@ public class LinkTwitch extends BaseController {
     }
     return twitch
       .link(command.authorizationCode())
+      .thenCompose(response ->
+        twitch
+          .getUser(response.accessToken())
+          .thenApply(it -> {
+            record UserData(
+              TwitchClient.TwitchUser user,
+              String refreshToken
+            ) {}
+            return new UserData(it, response.refreshToken());
+          })
+      )
       .thenApply(response -> {
         repository
           .create(
             response.refreshToken(),
             "refreshToken",
             owner.get(),
-            "Twitch"
+            "Twitch",
+            Map.of(
+              "id",
+              response.user().id(),
+              "name",
+              response.user().displayName(),
+              "email",
+              response.user().email(),
+              "avatar",
+              response.user().profileImageUrl()
+            )
           )
           .save();
         return HttpResponse.ok();

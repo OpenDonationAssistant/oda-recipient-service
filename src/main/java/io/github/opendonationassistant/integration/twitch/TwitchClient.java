@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.opendonationassistant.token.repository.OauthClient;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.serde.annotation.Serdeable;
@@ -16,19 +18,22 @@ import java.util.concurrent.CompletableFuture;
 @Singleton
 public class TwitchClient implements OauthClient {
 
-  private final TwitchClientApi api;
+  private final TwitchClientAuthApi auth;
+  private final TwitchClientDataApi data;
   private final String redirect;
   private final String clientId;
   private final String clientSecret;
 
   @Inject
   public TwitchClient(
-    TwitchClientApi api,
-    @Value("${twitch.redirect}") String redirect,
-    @Value("${twitch.client.id}") String clientId,
-    @Value("${twitch.client.secret}") String clientSecret
+    TwitchClientAuthApi auth,
+    TwitchClientDataApi data,
+    @Value("${twitch-auth.redirect}") String redirect,
+    @Value("${twitch-auth.client.id}") String clientId,
+    @Value("${twitch-auth.client.secret}") String clientSecret
   ) {
-    this.api = api;
+    this.auth = auth;
+    this.data = data;
     this.redirect = redirect;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -43,7 +48,7 @@ public class TwitchClient implements OauthClient {
     params.put("grant_type", "authorization_code");
     params.put("code", authorizationCode);
     params.put("redirect_uri", redirect);
-    return api.getToken(params);
+    return auth.getToken(params);
   }
 
   @Override
@@ -52,11 +57,17 @@ public class TwitchClient implements OauthClient {
     params.put("grant_type", "refresh_token");
     params.put("refresh_token", refreshToken);
     params.put("redirect_uri", redirect);
-    return api.getToken(params).thenApply(response -> response.accessToken());
+    return auth.getToken(params).thenApply(response -> response.accessToken());
   }
 
-  @Client("twitch")
-  public static interface TwitchClientApi {
+  public CompletableFuture<TwitchUser> getUser(String accessToken) {
+    return data
+      .getUser("Bearer " + accessToken)
+      .thenApply(response -> response.data());
+  }
+
+  @Client("twitch-auth")
+  public static interface TwitchClientAuthApi {
     @Post(
       value = "/oauth2/token",
       consumes = "application/json",
@@ -66,6 +77,25 @@ public class TwitchClient implements OauthClient {
       @Body Map<String, String> request
     );
   }
+
+  @Client("twitch-data")
+  public static interface TwitchClientDataApi {
+    @Get("/helix/users")
+    public CompletableFuture<DataWrapper<TwitchUser>> getUser(
+      @Header("Authorization") String auth
+    );
+  }
+
+  @Serdeable
+  public static record TwitchUser(
+    String id,
+    @JsonProperty("display_name") String displayName,
+    String email,
+    @JsonProperty("profile_image_url") String profileImageUrl
+  ) {}
+
+  @Serdeable
+  public static record DataWrapper<T>(T data) {}
 
   @Serdeable
   public static record GetAccessRecordResponse(

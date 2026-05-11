@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.opendonationassistant.token.repository.OauthClient;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.serde.annotation.Serdeable;
@@ -16,19 +18,22 @@ import java.util.concurrent.CompletableFuture;
 @Singleton
 public class KickClient implements OauthClient {
 
-  private final KickClientApi client;
+  private final KickClientAuthApi auth;
+  private final KickClientDataApi data;
   private final String redirect;
   private final String clientId;
   private final String clientSecret;
 
   @Inject
   public KickClient(
-    KickClientApi client,
-    @Value("${kick.redirect}") String redirect,
-    @Value("${kick.client.id}") String clientId,
-    @Value("${kick.client.secret}") String clientSecret
+    KickClientAuthApi auth,
+    KickClientDataApi data,
+    @Value("${kick-auth.redirect}") String redirect,
+    @Value("${kick-auth.client.id}") String clientId,
+    @Value("${kick-auth.client.secret}") String clientSecret
   ) {
-    this.client = client;
+    this.auth = auth;
+    this.data = data;
     this.redirect = redirect;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -45,11 +50,15 @@ public class KickClient implements OauthClient {
     params.put("code", authorizationCode);
     params.put("code_verifier", codeVerifier);
     params.put("redirect_uri", redirect);
-    return client.getToken(params);
+    return auth.getToken(params);
   }
 
-  @Client("kick")
-  public interface KickClientApi {
+  public CompletableFuture<KickUser> getUser(String accessToken) {
+    return data.getUser("Bearer " + accessToken).thenApply(DataWrapper::data);
+  }
+
+  @Client("kick-auth")
+  public interface KickClientAuthApi {
     @Post(
       value = "/oauth/token",
       consumes = "application/json",
@@ -59,6 +68,25 @@ public class KickClient implements OauthClient {
       @Body Map<String, String> request
     );
   }
+
+  @Client("kick-data")
+  public interface KickClientDataApi {
+    @Get("/public/v1/users")
+    public CompletableFuture<DataWrapper<KickUser>> getUser(
+      @Header("Authorization") String auth
+    );
+  }
+
+  @Serdeable
+  public static record DataWrapper<T>(T data) {}
+
+  @Serdeable
+  public static record KickUser(
+    String name,
+    String email,
+    @JsonProperty("profile_picture") String avatar,
+    @JsonProperty("user_id") String id
+  ) {}
 
   @Serdeable
   public static record GetAccessRecordResponse(
@@ -73,8 +101,6 @@ public class KickClient implements OauthClient {
     params.put("client_secret", clientSecret);
     params.put("grant_type", "refresh_token");
     params.put("refresh_token", token);
-    return client
-      .getToken(params)
-      .thenApply(response -> response.accessToken());
+    return auth.getToken(params).thenApply(response -> response.accessToken());
   }
 }

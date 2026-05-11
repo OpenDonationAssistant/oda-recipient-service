@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.inject.Inject;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -42,13 +43,32 @@ public class LinkVklive extends BaseController {
     }
     return vklive
       .link(command.authorizationCode())
+      .thenCompose(response ->
+        vklive
+          .getUser(response.accessToken())
+          .thenApply(it -> {
+            record UserData(
+              VKLiveClient.VKLiveUser user,
+              String refreshToken
+            ) {}
+            return new UserData(it, response.refreshToken());
+          })
+      )
       .thenApply(response -> {
         repository
           .create(
             response.refreshToken(),
             "refreshToken",
             owner.get(),
-            "VKLive"
+            "VKLive",
+            Map.of(
+              "id",
+              response.user().id(),
+              "name",
+              response.user().nick(),
+              "avatar",
+              response.user().avatarUrl()
+            )
           )
           .save();
         return HttpResponse.ok();
