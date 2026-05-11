@@ -62,7 +62,7 @@ public class TwitchClient implements OauthClient {
 
   public CompletableFuture<TwitchUser> getUser(String accessToken) {
     return data
-      .getUser("Bearer " + accessToken)
+      .getUser("Bearer " + accessToken, clientId)
       .thenApply(response -> response.data());
   }
 
@@ -82,7 +82,8 @@ public class TwitchClient implements OauthClient {
   public static interface TwitchClientDataApi {
     @Get("/helix/users")
     public CompletableFuture<DataWrapper<TwitchUser>> getUser(
-      @Header("Authorization") String auth
+      @Header("Authorization") String auth,
+      @Header("Client-Id") String clientId
     );
   }
 

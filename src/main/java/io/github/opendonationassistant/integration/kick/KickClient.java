@@ -12,7 +12,9 @@ import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Singleton
@@ -53,8 +55,10 @@ public class KickClient implements OauthClient {
     return auth.getToken(params);
   }
 
-  public CompletableFuture<KickUser> getUser(String accessToken) {
-    return data.getUser("Bearer " + accessToken).thenApply(DataWrapper::data);
+  public CompletableFuture<Optional<KickUser>> getUser(String accessToken) {
+    return data
+      .getUser("Bearer " + accessToken)
+      .thenApply(response -> response.data().stream().findFirst());
   }
 
   @Client("kick-auth")
@@ -78,7 +82,7 @@ public class KickClient implements OauthClient {
   }
 
   @Serdeable
-  public static record DataWrapper<T>(T data) {}
+  public static record DataWrapper<T>(List<T> data) {}
 
   @Serdeable
   public static record KickUser(
