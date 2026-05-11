@@ -12,7 +12,9 @@ import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Singleton
@@ -60,10 +62,10 @@ public class TwitchClient implements OauthClient {
     return auth.getToken(params).thenApply(response -> response.accessToken());
   }
 
-  public CompletableFuture<TwitchUser> getUser(String accessToken) {
+  public CompletableFuture<Optional<TwitchUser>> getUser(String accessToken) {
     return data
       .getUser("Bearer " + accessToken, clientId)
-      .thenApply(response -> response.data());
+      .thenApply(response -> response.data().stream().findFirst());
   }
 
   @Client("twitch-auth")
@@ -96,7 +98,7 @@ public class TwitchClient implements OauthClient {
   ) {}
 
   @Serdeable
-  public static record DataWrapper<T>(T data) {}
+  public static record DataWrapper<T>(List<T> data) {}
 
   @Serdeable
   public static record GetAccessRecordResponse(
