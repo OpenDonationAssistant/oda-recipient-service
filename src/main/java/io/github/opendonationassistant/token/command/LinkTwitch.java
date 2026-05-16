@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.twitch.TwitchClient;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -21,11 +22,17 @@ public class LinkTwitch extends BaseController {
 
   private final TwitchClient twitch;
   private final TokenRepository repository;
+  private final RabbitClient rabbit;
 
   @Inject
-  public LinkTwitch(TwitchClient twitch, TokenRepository repository) {
+  public LinkTwitch(
+    TwitchClient twitch,
+    TokenRepository repository,
+    RabbitClient rabbit
+  ) {
     this.twitch = twitch;
     this.repository = repository;
+    this.rabbit = rabbit;
   }
 
   @Post("/recipients/commands/link-twitch")

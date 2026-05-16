@@ -37,9 +37,6 @@ flyway:
       validate-on-migrate: false
       schemas: 'recipient'
       default-schema: 'recipient'
-rabbitmq:
-  host: ${RABBITMQ_HOST:`localhost`}
-  consumer-executor: "rabbit"
 infinispan:
   client:
     hotrod:

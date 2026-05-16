@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.kick.KickClient;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -21,11 +22,17 @@ public class LinkKick extends BaseController {
 
   private final KickClient client;
   private final TokenRepository tokenRepository;
+  private final RabbitClient rabbit;
 
   @Inject
-  public LinkKick(KickClient client, TokenRepository tokenRepository) {
+  public LinkKick(
+    KickClient client,
+    TokenRepository tokenRepository,
+    RabbitClient rabbit
+  ) {
     this.client = client;
     this.tokenRepository = tokenRepository;
+    this.rabbit = rabbit;
   }
 
   @Post("/recipients/commands/link-kick")
@@ -46,9 +53,14 @@ public class LinkKick extends BaseController {
           .thenApply(user -> {
             record UserData(
               Optional<KickClient.KickUser> user,
+              String accessToken,
               String refreshToken
             ) {}
-            return new UserData(user, response.refreshToken());
+            return new UserData(
+              user,
+              response.accessToken(),
+              response.refreshToken()
+            );
           })
       )
       .thenApply(response -> {
@@ -56,24 +68,30 @@ public class LinkKick extends BaseController {
           return HttpResponse.unauthorized();
         }
         var user = response.user().get();
-        tokenRepository
-          .create(
-            response.refreshToken(),
-            "refreshToken",
-            owner.get(),
-            "Kick",
-            Map.of(
-              "id",
-              user.id(),
-              "name",
-              user.name(),
-              "email",
-              user.email(),
-              "avatar",
-              user.avatar()
-            )
+        var token = tokenRepository.create(
+          response.refreshToken(),
+          "refreshToken",
+          owner.get(),
+          "Kick",
+          Map.of(
+            "id",
+            user.id(),
+            "name",
+            user.name(),
+            "email",
+            user.email(),
+            "avatar",
+            user.avatar()
           )
-          .save();
+        );
+        token.save();
+        rabbit.sendCommand(
+          new SubscribeAllKickEventsCommand(
+            owner.get(),
+            response.accessToken(),
+            token.data().id()
+          )
+        );
         return HttpResponse.ok();
       });
   }
@@ -82,5 +100,12 @@ public class LinkKick extends BaseController {
   public static record LinkKickCommand(
     String authorizationCode,
     String codeVerifier
+  ) {}
+
+  @Serdeable
+  public static record SubscribeAllKickEventsCommand(
+    String recipientId,
+    String token,
+    String refreshTokenId
   ) {}
 }

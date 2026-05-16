@@ -105,6 +105,8 @@ public class KickClient implements OauthClient {
     params.put("client_secret", clientSecret);
     params.put("grant_type", "refresh_token");
     params.put("refresh_token", token);
-    return auth.getToken(params).thenApply(response -> response.accessToken());
+    return auth
+      .getToken(params)
+      .thenApply(GetAccessRecordResponse::accessToken);
   }
 }

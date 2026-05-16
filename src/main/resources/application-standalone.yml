@@ -9,3 +9,6 @@ datasources:
 logger:
   levels:
     io.github.opendonationassistant: INFO
+rabbitmq:
+  host: ${RABBITMQ_HOST:`localhost`}
+  consumer-executor: "rabbit"

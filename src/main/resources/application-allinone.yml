@@ -4,3 +4,22 @@ datasources:
 logger:
   levels:
     io.github.opendonationassistant: DEBUG
+    io.micronaut.http.client: DEBUG
+    io.micronaut.http: DEBUG
+kick-auth.redirect: https://widgets.oda.digital
+kick-auth.client.id: id
+kick-auth.client.secret: secret
+discord.redirect: https://widgets.oda.digital
+discord.client.id: id
+discord.client.secret: secret
+twitch-auth.redirect: https://widgets.oda.digital
+twitch-auth.client.id: id
+twitch-auth.client.secret: secret
+vklive-auth.redirect: https://widgets.oda.digital
+vklive-auth.client.id: id
+vklive-auth.client.secret: secret
+micronaut:
+  http:
+    services:
+      kick-auth:
+        url: http://localhost:8080
