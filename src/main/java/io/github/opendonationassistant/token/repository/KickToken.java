@@ -1,12 +1,15 @@
 package io.github.opendonationassistant.token.repository;
 
+import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.integration.kick.KickClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.serde.annotation.Serdeable;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class KickToken extends RefreshToken {
 
+  private ODALogger log = new ODALogger(this);
   private final RabbitClient rabbit;
 
   public KickToken(

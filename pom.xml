@@ -135,6 +135,13 @@
       <artifactId>micronaut-test-junit5</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Source: https://mvnrepository.com/artifact/org.mock-server/mockserver-junit-jupiter -->
+<dependency>
+    <groupId>org.mock-server</groupId>
+    <artifactId>mockserver-junit-jupiter</artifactId>
+    <version>5.15.0</version>
+    <scope>test</scope>
+</dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -155,30 +162,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>5.12.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock-core</artifactId>
-      <version>4.0.0-beta.34</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock-jetty</artifactId>
-      <version>4.0.0-beta.34</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock-junit5</artifactId>
-      <version>4.0.0-beta.34</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock-httpclient-apache5</artifactId>
-      <version>4.0.0-beta.34</version>
       <scope>test</scope>
     </dependency>
     <dependency>

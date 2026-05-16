@@ -84,7 +84,6 @@ public class LinkKick extends BaseController {
             user.avatar()
           )
         );
-        token.save();
         rabbit.sendCommand(
           new SubscribeAllKickEventsCommand(
             owner.get(),

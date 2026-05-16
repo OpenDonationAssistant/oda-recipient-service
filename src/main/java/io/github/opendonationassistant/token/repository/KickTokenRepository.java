@@ -1,11 +1,11 @@
 package io.github.opendonationassistant.token.repository;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
-import java.util.Optional;
-
 import io.github.opendonationassistant.integration.kick.KickClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.Optional;
 
 @Singleton
 public class KickTokenRepository implements TokenProvider<KickToken> {
@@ -15,7 +15,11 @@ public class KickTokenRepository implements TokenProvider<KickToken> {
   private final RabbitClient rabbit;
 
   @Inject
-  public KickTokenRepository(TokenDataRepository repository, KickClient client, RabbitClient rabbit) {
+  public KickTokenRepository(
+    TokenDataRepository repository,
+    KickClient client,
+    @Named("commands") RabbitClient rabbit
+  ) {
     this.repository = repository;
     this.client = client;
     this.rabbit = rabbit;
@@ -27,9 +31,7 @@ public class KickTokenRepository implements TokenProvider<KickToken> {
   }
 
   public Optional<KickToken> findById(String id) {
-    return repository
-      .findById(id)
-      .map(this::convert);
+    return repository.findById(id).map(this::convert);
   }
 
   public KickToken convert(TokenData data) {

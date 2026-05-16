@@ -11,8 +11,6 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -27,7 +25,6 @@ public class DeleteToken extends BaseController {
 
   @Post("/recipients/tokens/deletetoken")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  @Transactional
   public CompletableFuture<HttpResponse<Void>> deleteToken(
     Authentication auth,
     @Body DeleteTokenCommand command
