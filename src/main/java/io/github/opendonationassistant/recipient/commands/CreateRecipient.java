@@ -1,11 +1,13 @@
 package io.github.opendonationassistant.recipient.commands;
 
 import io.github.opendonationassistant.events.files.FilesCommand;
-import io.github.opendonationassistant.events.files.FilesFacade;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
@@ -14,8 +16,6 @@ import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -25,17 +25,18 @@ import org.keycloak.representations.idm.UserRepresentation;
 @Controller
 public class CreateRecipient {
 
-  private final FilesFacade filesFacade;
+  private final RabbitClient rabbit;
   private final RealmResource realm;
 
   @Inject
-  public CreateRecipient(FilesFacade filesFacade, RealmResource realm) {
-    this.filesFacade = filesFacade;
+  public CreateRecipient(RabbitClient rabbit, RealmResource realm) {
+    this.rabbit = rabbit;
     this.realm = realm;
   }
 
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post("/recipients/commands/create-recipient")
+  @ExecuteOn(TaskExecutors.BLOCKING)
   public HttpResponse<CreateRecipientCommandResponse> createRecipient(
     @Body CreateRecipientCommand command
   ) {
@@ -49,12 +50,8 @@ public class CreateRecipient {
     newUser.setCredentials(List.of(passwordRepresentation(password)));
     realm.users().create(newUser);
 
-    CompletableFuture.runAsync(
-      () ->
-        filesFacade.sendCommand(
-          new FilesCommand.CreateBucketCommand(command.nickname())
-        ),
-      Executors.newSingleThreadExecutor()
+    rabbit.sendCommand(
+      new FilesCommand.CreateBucketCommand(command.nickname())
     );
 
     return HttpResponse.ok(new CreateRecipientCommandResponse(password));

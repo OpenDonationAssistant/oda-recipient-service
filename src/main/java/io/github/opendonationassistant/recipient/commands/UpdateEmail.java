@@ -1,7 +1,6 @@
 package io.github.opendonationassistant.recipient.commands;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.integration.keycloak.KeycloakClient;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -19,12 +18,10 @@ import org.keycloak.representations.idm.UserRepresentation;
 @Controller
 public class UpdateEmail extends BaseController {
 
-  private final KeycloakClient keycloak;
   private final RealmResource realm;
 
   @Inject
-  public UpdateEmail(KeycloakClient keycloak, RealmResource realm) {
-    this.keycloak = keycloak;
+  public UpdateEmail(RealmResource realm) {
     this.realm = realm;
   }
 
@@ -38,18 +35,18 @@ public class UpdateEmail extends BaseController {
     if (owner.isEmpty()) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
-    var users = realm.users().search(owner.get(), true);
-    if (users.size() == 0) {
-      return CompletableFuture.completedFuture(HttpResponse.unauthorized());
-    }
-    UserRepresentation user = users.getFirst();
-    user.setEmail(command.email());
-    return keycloak
-      .updateUser(user.getId(), user)
-      .thenCompose(v ->
-        keycloak.sendVerifyEmail(user.getId(), Map.of("id", user.getId()))
-      )
-      .thenApply(v -> HttpResponse.ok());
+    return CompletableFuture.supplyAsync(() -> {
+      var users = realm.users().search(owner.get(), true);
+      if (users.size() == 0) {
+        return HttpResponse.unauthorized();
+      }
+      UserRepresentation user = users.getFirst();
+      user.setEmail(command.email());
+      var userResource = realm.users().get(user.getId());
+      userResource.update(user);
+      userResource.sendVerifyEmail();
+      return HttpResponse.ok();
+    });
   }
 
   @Serdeable
