@@ -4,6 +4,7 @@ import io.github.opendonationassistant.rabbit.AMQPConfiguration;
 import io.github.opendonationassistant.rabbit.Exchange;
 import io.github.opendonationassistant.rabbit.Queue;
 import io.github.opendonationassistant.rabbit.RabbitClient;
+import io.github.opendonationassistant.token.listener.handlers.TokenRequestHandler;
 import io.micronaut.context.ApplicationContextBuilder;
 import io.micronaut.context.ApplicationContextConfigurer;
 import io.micronaut.context.annotation.ContextConfigurer;
@@ -47,7 +48,8 @@ public class Application {
         //   Map.of("event.HistoryItemEvent", contributions)
         // ),
         Exchange.Exchange("history", Map.of("recipient", contributions)),
-        Exchange.Exchange("commands", Map.of())
+        Exchange.Exchange("commands", Map.of()),
+        Exchange.Exchange("rpc", Map.of("token", TokenRequestHandler.QUEUE))
       )
     );
   }
