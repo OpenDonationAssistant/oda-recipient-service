@@ -13,6 +13,8 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +30,7 @@ public class LinkTwitch extends BaseController {
   public LinkTwitch(
     TwitchClient twitch,
     TokenRepository repository,
-    RabbitClient rabbit
+    @Named("commands") RabbitClient rabbit
   ) {
     this.twitch = twitch;
     this.repository = repository;
