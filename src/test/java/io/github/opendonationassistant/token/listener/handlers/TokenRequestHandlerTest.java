@@ -1,6 +1,7 @@
 package io.github.opendonationassistant.token.listener.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.opendonationassistant.rabbit.TokenRPC.TokenRequest;
@@ -49,4 +50,37 @@ public class TokenRequestHandlerTest {
     assertTrue(response.message().isEmpty());
   }
 
+  @Test
+  public void testHandlingNotFound() throws IOException {
+    Mockito.when(twitchToken.data()).thenReturn(
+      new TokenData(
+        "refreshTokenId",
+        "TOKEN",
+        "refreshToken",
+        "testuser",
+        "Twitch",
+        true,
+        Map.of()
+      )
+    );
+
+    Mockito.when(twitchToken.obtainAccessToken()).thenReturn(
+      CompletableFuture.completedFuture("accessToken")
+    );
+
+    Mockito.when(tokenRepository.findById("refreshTokenId")).thenReturn(
+      Optional.of(twitchToken)
+    );
+    Mockito.when(tokenRepository.findById("notfound")).thenReturn(
+      Optional.empty()
+    );
+
+    var response = handler.handle(
+      new TokenRequest("notfound", "refreshTokenId")
+    );
+    assertNull(response.token());
+
+    response = handler.handle(new TokenRequest("testuser", "notfound"));
+    assertNull(response.token());
+  }
 }

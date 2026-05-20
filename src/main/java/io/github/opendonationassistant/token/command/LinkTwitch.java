@@ -63,27 +63,34 @@ public class LinkTwitch extends BaseController {
           return HttpResponse.unauthorized();
         }
         var user = response.user().get();
-        repository
-          .create(
-            response.refreshToken(),
-            "refreshToken",
-            owner.get(),
-            "Twitch",
-            Map.of(
-              "id",
-              user.id(),
-              "name",
-              user.displayName(),
-              "email",
-              user.email(),
-              "avatar",
-              user.profileImageUrl()
-            )
+        var token = repository.create(
+          response.refreshToken(),
+          "refreshToken",
+          owner.get(),
+          "Twitch",
+          Map.of(
+            "id",
+            user.id(),
+            "name",
+            user.displayName(),
+            "email",
+            user.email(),
+            "avatar",
+            user.profileImageUrl()
           )
-          .save();
+        );
+        rabbit.sendCommand(
+          new SubscribeAllTwitchEventsCommand(owner.get(), token.data().id())
+        );
         return HttpResponse.ok();
       });
   }
+
+  @Serdeable
+  public static record SubscribeAllTwitchEventsCommand(
+    String recipientId,
+    String refreshTokenId
+  ) {}
 
   @Serdeable
   public static record GetTwitchTokenCommand(String authorizationCode) {}
