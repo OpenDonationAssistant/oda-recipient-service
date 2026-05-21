@@ -27,25 +27,42 @@ public class TokenRequestHandler {
 
   @Queue(QUEUE_NAME)
   public TokenResponse handle(TokenRequest message) throws IOException {
-    log.debug(
-      "Received token request",
-      Map.of(
-        "recipientId",
-        message.recipientId(),
-        "refreshTokenId",
-        message.refreshTokenId()
-      )
-    );
-    String obtainedToken = tokenRepository
-      .findById(message.refreshTokenId())
-      .filter(token -> token.data().recipientId().equals(message.recipientId()))
-      .filter(token -> token instanceof RefreshToken)
-      .map(token -> ((RefreshToken) token).obtainAccessToken().join())
-      .orElse(null);
-    log.debug(
-      "Obtained token",
-      Map.of("recipientId", message.recipientId(), "token", obtainedToken)
-    );
-    return new TokenResponse(obtainedToken, "");
+    try {
+      log.debug(
+        "Received token request",
+        Map.of(
+          "recipientId",
+          message.recipientId(),
+          "refreshTokenId",
+          message.refreshTokenId()
+        )
+      );
+      String obtainedToken = tokenRepository
+        .findById(message.refreshTokenId())
+        .filter(token ->
+          token.data().recipientId().equals(message.recipientId())
+        )
+        .filter(token -> token instanceof RefreshToken)
+        .map(token -> ((RefreshToken) token).obtainAccessToken().join())
+        .orElse(null);
+      log.debug(
+        "Obtained token",
+        Map.of("recipientId", message.recipientId(), "token", obtainedToken)
+      );
+      return new TokenResponse(obtainedToken, "");
+    } catch (Exception e) {
+      log.error(
+        "Failed to obtain token",
+        Map.of(
+          "recipientId",
+          message.recipientId(),
+          "refreshTokenId",
+          message.refreshTokenId(),
+          "error",
+          e.getMessage()
+        )
+      );
+      return new TokenResponse(null, e.getMessage());
+    }
   }
 }
