@@ -7,7 +7,7 @@ micronaut:
     serialization:
       inclusion: ALWAYS
   executors:
-    contribution-executor:
+    rabbit:
       nThreads: 1
       type: fixed
       name: rabbit

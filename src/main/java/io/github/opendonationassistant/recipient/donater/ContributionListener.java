@@ -1,5 +1,7 @@
 package io.github.opendonationassistant.recipient.donater;
 
+import static io.github.opendonationassistant.rabbit.Queue.Payments.CONTRIBUTIONS;
+
 import io.github.opendonationassistant.commons.Amount;
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.events.history.event.HistoryItemEvent;
@@ -13,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-@RabbitListener(executor = "contribution-executor")
+@RabbitListener
 public class ContributionListener {
 
   private ODALogger log = new ODALogger(this);
