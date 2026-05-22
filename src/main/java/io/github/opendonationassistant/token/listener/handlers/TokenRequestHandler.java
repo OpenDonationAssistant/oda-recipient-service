@@ -45,10 +45,18 @@ public class TokenRequestHandler {
         .filter(token -> token instanceof RefreshToken)
         .map(token -> ((RefreshToken) token).obtainAccessToken().join())
         .orElse(null);
-      log.debug(
-        "Obtained token",
-        Map.of("recipientId", message.recipientId(), "token", obtainedToken)
-      );
+      if (obtainedToken == null) {
+        log.warn(
+          "Token can't be obtained",
+          Map.of(
+            "recipientId",
+            message.recipientId(),
+            "refreshTokenId",
+            message.refreshTokenId()
+          )
+        );
+        return new TokenResponse(null, "Token not found");
+      }
       return new TokenResponse(obtainedToken, "");
     } catch (Exception e) {
       log.error(

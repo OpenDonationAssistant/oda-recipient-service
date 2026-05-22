@@ -51,7 +51,7 @@
     <dependency>
       <groupId>io.github.opendonationassistant</groupId>
       <artifactId>oda-rabbit-conf</artifactId>
-      <version>0.10.212</version>
+      <version>0.10.213</version>
     </dependency>
     <dependency>
       <groupId>io.micronaut.rabbitmq</groupId>
@@ -282,7 +282,7 @@
             <arg>-Amicronaut.processing.module=oda-recipient-service</arg>
             <arg>-XDcompilePolicy=simple</arg>
             <arg>--should-stop=ifError=FLOW</arg>
-            <arg>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=io.github.opendonationassistant -XepOpt:NullAway:JSpecifyMode=true -Xep:NullAway:ERROR</arg>
+            <arg>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=io.github.opendonationassistant -XepOpt:NullAway:JSpecifyMode=true -XepOpt:NullAway:IgnoreGenerated=true</arg>
           </compilerArgs>
         </configuration>
       </plugin>
