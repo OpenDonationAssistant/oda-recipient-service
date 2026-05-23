@@ -14,7 +14,6 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -82,6 +81,14 @@ public class LinkTwitch extends BaseController {
           )
         );
         rabbit.sendCommand(
+          new LinkTwitchAccount(
+            owner.get(),
+            user.id(),
+            user.login(),
+            token.data().id()
+          )
+        );
+        rabbit.sendCommand(
           new SubscribeAllTwitchEventsCommand(owner.get(), token.data().id())
         );
         return HttpResponse.ok();
@@ -91,6 +98,14 @@ public class LinkTwitch extends BaseController {
   @Serdeable
   public static record SubscribeAllTwitchEventsCommand(
     String recipientId,
+    String refreshTokenId
+  ) {}
+
+  @Serdeable
+  public static record LinkTwitchAccount(
+    String recipientId,
+    String twitchId,
+    String twitchLogin,
     String refreshTokenId
   ) {}
 

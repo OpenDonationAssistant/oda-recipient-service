@@ -94,6 +94,7 @@ public class TwitchClient implements OauthClient {
   @Serdeable
   public static record TwitchUser(
     String id,
+    @JsonProperty("login") String login,
     @JsonProperty("display_name") String displayName,
     String email,
     @JsonProperty("profile_image_url") String profileImageUrl
