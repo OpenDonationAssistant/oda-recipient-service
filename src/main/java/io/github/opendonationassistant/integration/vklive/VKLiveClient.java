@@ -75,7 +75,7 @@ public class VKLiveClient implements OauthClient {
     @Post(
       value = "/oauth/server/token",
       produces = MediaType.APPLICATION_FORM_URLENCODED,
-      consumes = MediaType.APPLICATION_FORM_URLENCODED
+      consumes = MediaType.APPLICATION_JSON
     )
     CompletableFuture<GetAccessRecordResponse> getToken(
       @Header("Authorization") String auth,
