@@ -85,9 +85,16 @@ public class LinkKick extends BaseController {
           )
         );
         rabbit.sendCommand(
+          new LinkKickAccount(
+            user.id(),
+            user.name(),
+            owner.get(),
+            token.data().id()
+          )
+        );
+        rabbit.sendCommand(
           new SubscribeAllKickEventsCommand(
             owner.get(),
-            response.accessToken(),
             token.data().id()
           )
         );
@@ -104,7 +111,14 @@ public class LinkKick extends BaseController {
   @Serdeable
   public static record SubscribeAllKickEventsCommand(
     String recipientId,
-    String token,
+    String refreshTokenId
+  ) {}
+
+  @Serdeable
+  public static record LinkKickAccount(
+    String kickId,
+    String username,
+    String recipientId,
     String refreshTokenId
   ) {}
 }
