@@ -76,7 +76,8 @@ public class LinkVklive extends BaseController {
           new LinkVkAccount(
             owner.get(),
             token.data().id(),
-            response.user().id()
+            response.user().id(),
+            response.user().nick()
           )
         );
         return HttpResponse.ok();
@@ -90,6 +91,7 @@ public class LinkVklive extends BaseController {
   public static record LinkVkAccount(
     String recipientId,
     String refreshTokenId,
-    String id
+    String id,
+    String username
   ) {}
 }
