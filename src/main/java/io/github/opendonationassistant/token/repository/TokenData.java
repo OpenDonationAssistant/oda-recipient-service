@@ -16,16 +16,31 @@ public record TokenData(
   String recipientId,
   String system,
   boolean enabled,
+  boolean deleted,
   @MappedProperty(type = DataType.JSON) Map<String, Object> settings
 ) {
-  public TokenData withEnabled(boolean newValue) {
+  public TokenData withEnabled(boolean enabled) {
     return new TokenData(
       id,
       token,
       type,
       recipientId,
       system,
-      newValue,
+      enabled,
+      deleted,
+      settings
+    );
+  }
+
+  public TokenData withDeleted(boolean deleted) {
+    return new TokenData(
+      id,
+      token,
+      type,
+      recipientId,
+      system,
+      enabled,
+      deleted,
       settings
     );
   }
@@ -38,6 +53,7 @@ public record TokenData(
       recipientId,
       system,
       enabled,
+      deleted,
       settings
     );
   }

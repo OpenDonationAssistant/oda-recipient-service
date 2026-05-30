@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import io.github.opendonationassistant.token.command.SetToken.SetTokenCommand;
 import io.github.opendonationassistant.token.repository.TokenData;
 import io.github.opendonationassistant.token.repository.TokenDataRepository;
+import io.github.opendonationassistant.token.view.TokenController;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -26,7 +27,10 @@ public class SetTokenTest {
     .mapType(Object.class, String.class);
 
   @Inject
-  SetToken controller;
+  SetToken setToken;
+
+  @Inject
+  TokenController tokenController;
 
   @Inject
   TokenDataRepository repository;
@@ -41,7 +45,7 @@ public class SetTokenTest {
       Map.of("preferred_username", recipientId)
     );
 
-    controller.setToken(auth, command);
+    setToken.setToken(auth, command);
     var saved = repository.findById(command.id());
     assertTrue(saved.isPresent());
     assertEquals(command.token(), saved.get().token());
@@ -49,6 +53,13 @@ public class SetTokenTest {
     assertEquals(command.type(), saved.get().type());
     assertEquals(recipientId, saved.get().recipientId());
     assertTrue(saved.get().enabled());
+
+    var tokens = tokenController.listTokens(auth);
+    assertTrue(tokens.getBody().isPresent());
+    assertEquals(1, tokens.getBody().get().size());
+    assertEquals(command.token(), tokens.getBody().get().get(0).token());
+    assertEquals(command.system(), tokens.getBody().get().get(0).system());
+    assertEquals(command.type(), tokens.getBody().get().get(0).type());
   }
 
   @Test
@@ -70,6 +81,7 @@ public class SetTokenTest {
         recipientId,
         oldData.system(),
         true,
+        false,
         oldData.settings()
       )
     );
@@ -82,12 +94,19 @@ public class SetTokenTest {
       command.settings()
     );
 
-    controller.setToken(auth, updateCommand);
+    setToken.setToken(auth, updateCommand);
     var saved = repository.findById(oldData.id());
     assertTrue(saved.isPresent());
     assertEquals(command.token(), saved.get().token());
     assertEquals(command.system(), saved.get().system());
     assertEquals(command.type(), saved.get().type());
     assertEquals(recipientId, saved.get().recipientId());
+
+    var tokens = tokenController.listTokens(auth);
+    assertTrue(tokens.getBody().isPresent());
+    assertEquals(1, tokens.getBody().get().size());
+    assertEquals(command.token(), tokens.getBody().get().get(0).token());
+    assertEquals(command.system(), tokens.getBody().get().get(0).system());
+    assertEquals(command.type(), tokens.getBody().get().get(0).type());
   }
 }

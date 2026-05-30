@@ -31,6 +31,7 @@ public class TokenRequestHandlerTest {
         "testuser",
         "Twitch",
         true,
+        false,
         Map.of()
       )
     );
@@ -60,6 +61,7 @@ public class TokenRequestHandlerTest {
         "testuser",
         "Twitch",
         true,
+        false,
         Map.of()
       )
     );

@@ -29,7 +29,7 @@ public class TokenRepository {
 
   public List<Token> findByRecipientId(String recipientId) {
     return repository
-      .findByRecipientId(recipientId)
+      .findByRecipientIdAndDeletedFalse(recipientId)
       .stream()
       .map(this::convert)
       .toList();
@@ -41,7 +41,7 @@ public class TokenRepository {
     String type
   ) {
     return repository
-      .findByRecipientIdAndSystemAndType(recipientId, system, type)
+      .findByRecipientIdAndSystemAndTypeAndDeletedFalse(recipientId, system, type)
       .stream()
       .map(this::convert)
       .toList();
@@ -71,6 +71,7 @@ public class TokenRepository {
       recipientId,
       system,
       true,
+      false,
       settings
     );
     repository.save(data);

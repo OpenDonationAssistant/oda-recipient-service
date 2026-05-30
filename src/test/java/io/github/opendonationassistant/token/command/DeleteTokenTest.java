@@ -18,8 +18,11 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.util.Map;
+import org.instancio.Instancio;
+import org.instancio.Select;
 import org.instancio.junit.Given;
 import org.instancio.junit.InstancioExtension;
 import org.instancio.junit.WithSettings;
@@ -31,7 +34,7 @@ import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-@MicronautTest(environments = "allinone")
+@MicronautTest(environments = "allinone", transactional = false)
 @ExtendWith(InstancioExtension.class)
 @ExtendWith(MockServerExtension.class)
 @MockServerSettings(ports = { 8080 })
@@ -65,8 +68,13 @@ public class DeleteTokenTest {
   ObjectMapper mapper;
 
   @Test
-  public void testGenericTokenDeletion(@Given TokenData token)
+  public void testGenericTokenDeletion()
     throws IOException, InterruptedException {
+    var token = Instancio.of(TokenData.class)
+      .set(Select.field(TokenData::enabled), true)
+      .set(Select.field(TokenData::deleted), false)
+      .create();
+
     when(auth.getAttributes()).thenReturn(
       Map.of("preferred_username", token.recipientId())
     );
@@ -74,9 +82,18 @@ public class DeleteTokenTest {
     log.debug("Creating token", Map.of("token", token));
     repository.save(token);
 
+    var notDeleted = tokenRepository.findById(token.id());
+    assertTrue(notDeleted.isPresent());
+
     controller
       .deleteToken(auth, new DeleteTokenCommand(token.id()))
-      .thenAccept(result -> assertFalse(repository.existsById(token.id())))
+      .thenAccept(result -> {
+        var deleted = tokenRepository.findById(token.id());
+        assertTrue(deleted.isPresent());
+        assertTrue(deleted.get().data().deleted());
+        var all = tokenRepository.findByRecipientId(token.recipientId());
+        assertTrue(all.isEmpty());
+      })
       .join();
   }
 
@@ -116,14 +133,15 @@ public class DeleteTokenTest {
       template.recipientId(),
       "Kick",
       false,
+      false,
       template.settings()
     );
 
     repository.save(token);
-    controller
-      .deleteToken(auth, new DeleteTokenCommand(token.id()))
-      .thenAccept(result -> assertFalse(repository.existsById(token.id())))
-      .join();
+    controller.deleteToken(auth, new DeleteTokenCommand(token.id())).join();
+    var deleted = repository.findById(token.id());
+    assertTrue(deleted.isPresent());
+    assertTrue(deleted.get().deleted());
 
     var message = channel.getChannel().basicGet(queue, true);
     assertNotNull(message);

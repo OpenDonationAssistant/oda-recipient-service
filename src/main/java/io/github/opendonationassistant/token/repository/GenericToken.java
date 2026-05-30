@@ -36,12 +36,13 @@ public class GenericToken implements Token {
 
   @Override
   public CompletableFuture<Void> delete() {
+    this.data = this.data.withDeleted(true);
     return CompletableFuture.runAsync(() -> {
       log.info(
         "Deleting token",
         Map.of("id", data.id(), "recipientId", data.recipientId())
       );
-      repository.delete(data);
+      repository.update(this.data);
     });
   }
 

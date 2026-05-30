@@ -45,6 +45,7 @@ public class SetToken extends BaseController {
       owner.get(),
       command.system(),
       true,
+      false,
       command.settings()
     );
     Optional.ofNullable(command.id())
