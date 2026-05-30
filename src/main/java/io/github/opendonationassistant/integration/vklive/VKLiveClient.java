@@ -65,7 +65,7 @@ public class VKLiveClient implements OauthClient {
 
   public CompletableFuture<VKLiveUser> getUser(String accessToken) {
     return data
-      .getUser(accessToken)
+      .getUser("Bearer %s".formatted(accessToken))
       .thenApply(DataWrapper::data)
       .thenApply(UserWrapper::user);
   }
