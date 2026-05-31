@@ -26,11 +26,10 @@ public class KickToken extends RefreshToken {
     return obtainAccessToken()
       .thenCompose(token -> {
         rabbit.sendCommand(
-          new UnsubscribeKickEventsCommand(
-            data().recipientId(),
-            token,
-            data().id()
-          )
+          new UnsubscribeKickEventsCommand(data().recipientId(), data().id())
+        );
+        rabbit.sendCommand(
+          new UnlinkKickAccount(data().recipientId(), data().id())
         );
         return super.delete();
       });
@@ -45,9 +44,14 @@ public class KickToken extends RefreshToken {
   }
 
   @Serdeable
+  public static record UnlinkKickAccount(
+    String recipientId,
+    String refreshTokenId
+  ) {}
+
+  @Serdeable
   public static record UnsubscribeKickEventsCommand(
     String recipientId,
-    String token,
     String refreshTokenId
   ) {}
 }
