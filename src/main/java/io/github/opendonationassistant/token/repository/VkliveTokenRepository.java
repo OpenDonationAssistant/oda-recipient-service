@@ -1,14 +1,17 @@
 package io.github.opendonationassistant.token.repository;
 
+import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.vklive.VKLiveClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import java.util.Map;
 import java.util.Optional;
 
 @Singleton
 public class VkliveTokenRepository implements TokenProvider<VkliveToken> {
 
+  private static final String SYSTEM = "VKlive";
   private final TokenDataRepository repository;
   private final VKLiveClient client;
   private final RabbitClient rabbit;
@@ -26,7 +29,28 @@ public class VkliveTokenRepository implements TokenProvider<VkliveToken> {
 
   @Override
   public String system() {
-    return "Vklive";
+    return SYSTEM;
+  }
+
+  @Override
+  public VkliveToken create(
+    String token,
+    String recipientId,
+    Map<String, Object> settings
+  ) {
+    var id = Generators.timeBasedEpochGenerator().generate().toString();
+    var data = new TokenData(
+      id,
+      token,
+      "refreshToken",
+      recipientId,
+      SYSTEM,
+      true,
+      false,
+      settings
+    );
+    repository.save(data);
+    return convert(data);
   }
 
   public Optional<VkliveToken> findById(String id) {

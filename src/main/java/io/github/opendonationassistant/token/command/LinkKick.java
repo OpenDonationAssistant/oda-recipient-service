@@ -3,6 +3,7 @@ package io.github.opendonationassistant.token.command;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.kick.KickClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
+import io.github.opendonationassistant.token.repository.KickTokenRepository;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -21,13 +22,13 @@ import java.util.concurrent.CompletableFuture;
 public class LinkKick extends BaseController {
 
   private final KickClient client;
-  private final TokenRepository tokenRepository;
+  private final KickTokenRepository tokenRepository;
   private final RabbitClient rabbit;
 
   @Inject
   public LinkKick(
     KickClient client,
-    TokenRepository tokenRepository,
+    KickTokenRepository tokenRepository,
     RabbitClient rabbit
   ) {
     this.client = client;
@@ -70,9 +71,7 @@ public class LinkKick extends BaseController {
         var user = response.user().get();
         var token = tokenRepository.create(
           response.refreshToken(),
-          "refreshToken",
           owner.get(),
-          "Kick",
           Map.of(
             "id",
             user.id(),
@@ -93,10 +92,7 @@ public class LinkKick extends BaseController {
           )
         );
         rabbit.sendCommand(
-          new SubscribeAllKickEventsCommand(
-            owner.get(),
-            token.data().id()
-          )
+          new SubscribeAllKickEventsCommand(owner.get(), token.data().id())
         );
         return HttpResponse.ok();
       });
