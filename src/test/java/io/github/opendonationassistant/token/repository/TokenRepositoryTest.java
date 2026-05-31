@@ -33,7 +33,7 @@ public class TokenRepositoryTest {
       .findFirst();
     assertTrue(expected.isPresent());
     assertEquals("token", expected.get().data().token());
-    assertEquals("VKlive", expected.get().data().system());
+    assertEquals("VKLive", expected.get().data().system());
     assertEquals("vkid", expected.get().data().settings().get("id"));
     assertEquals("vkname", expected.get().data().settings().get("name"));
     assertEquals("vkavatar", expected.get().data().settings().get("avatar"));

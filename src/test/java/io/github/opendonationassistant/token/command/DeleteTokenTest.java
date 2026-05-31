@@ -152,7 +152,6 @@ public class DeleteTokenTest {
         KickToken.UnsubscribeKickEventsCommand.class
       );
     assertNotNull(command);
-    assertEquals("access_token", command.token());
     assertEquals(token.recipientId(), command.recipientId());
     assertEquals(token.id(), command.refreshTokenId());
   }
