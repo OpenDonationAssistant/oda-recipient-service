@@ -6,11 +6,11 @@ import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
-public class KickTokenRepository implements TokenProvider<KickToken> {
+public class KickTokenRepository implements TokenProvider<KickToken, KickToken.Settings> {
 
   private static final String SYSTEM = "Kick";
   private final TokenDataRepository repository;
@@ -33,11 +33,10 @@ public class KickTokenRepository implements TokenProvider<KickToken> {
     return SYSTEM;
   }
 
-  @Override
-  public KickToken create(
+  public CompletableFuture<KickToken> create(
     String token,
     String recipientId,
-    Map<String, Object> settings
+    KickToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
     var data = new TokenData(
@@ -48,10 +47,10 @@ public class KickTokenRepository implements TokenProvider<KickToken> {
       SYSTEM,
       true,
       false,
-      settings
+      settings.asJsonMap()
     );
     repository.save(data);
-    return convert(data);
+    return CompletableFuture.completedFuture(convert(data));
   }
 
   public Optional<KickToken> findById(String id) {

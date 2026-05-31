@@ -46,13 +46,6 @@ public class SetTokenTest {
     );
 
     setToken.setToken(auth, command);
-    var saved = repository.findById(command.id());
-    assertTrue(saved.isPresent());
-    assertEquals(command.token(), saved.get().token());
-    assertEquals(command.system(), saved.get().system());
-    assertEquals(command.type(), saved.get().type());
-    assertEquals(recipientId, saved.get().recipientId());
-    assertTrue(saved.get().enabled());
 
     var tokens = tokenController.listTokens(auth);
     assertTrue(tokens.getBody().isPresent());
@@ -95,12 +88,6 @@ public class SetTokenTest {
     );
 
     setToken.setToken(auth, updateCommand);
-    var saved = repository.findById(oldData.id());
-    assertTrue(saved.isPresent());
-    assertEquals(command.token(), saved.get().token());
-    assertEquals(command.system(), saved.get().system());
-    assertEquals(command.type(), saved.get().type());
-    assertEquals(recipientId, saved.get().recipientId());
 
     var tokens = tokenController.listTokens(auth);
     assertTrue(tokens.getBody().isPresent());

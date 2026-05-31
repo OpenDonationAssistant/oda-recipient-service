@@ -1,6 +1,6 @@
 package io.github.opendonationassistant.token.repository;
 
-import io.github.opendonationassistant.commons.logging.ODALogger;
+import io.github.opendonationassistant.JsonConvertable;
 import io.github.opendonationassistant.integration.kick.KickClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.serde.annotation.Serdeable;
@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class KickToken extends RefreshToken {
 
-  private ODALogger log = new ODALogger(this);
   private final RabbitClient rabbit;
 
   public KickToken(
@@ -35,6 +34,14 @@ public class KickToken extends RefreshToken {
         );
         return super.delete();
       });
+  }
+
+  @Serdeable
+  public record Settings(String id, String name, String avatar, String email)
+    implements JsonConvertable {
+    public Map<String, Object> asJsonMap() {
+      return Map.of("id", id, "name", name, "avatar", avatar, "email", email);
+    }
   }
 
   @Serdeable

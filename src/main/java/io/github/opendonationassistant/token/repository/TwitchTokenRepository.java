@@ -5,11 +5,11 @@ import io.github.opendonationassistant.integration.twitch.TwitchClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
-public class TwitchTokenRepository implements TokenProvider<TwitchToken> {
+public class TwitchTokenRepository implements TokenProvider<TwitchToken, TwitchToken.Settings> {
 
   private static final String SYSTEM = "Twitch";
   private final TokenDataRepository repository;
@@ -33,10 +33,10 @@ public class TwitchTokenRepository implements TokenProvider<TwitchToken> {
   }
 
   @Override
-  public TwitchToken create(
+  public CompletableFuture<TwitchToken> create(
     String token,
     String recipientId,
-    Map<String, Object> settings
+    TwitchToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
     var data = new TokenData(
@@ -47,10 +47,10 @@ public class TwitchTokenRepository implements TokenProvider<TwitchToken> {
       SYSTEM,
       true,
       false,
-      settings
+      settings.asJsonMap()
     );
     repository.save(data);
-    return convert(data);
+    return CompletableFuture.completedFuture(convert(data));
   }
 
   public Optional<TwitchToken> findById(String id) {

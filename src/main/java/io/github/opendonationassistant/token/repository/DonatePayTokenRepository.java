@@ -2,11 +2,11 @@ package io.github.opendonationassistant.token.repository;
 
 import com.fasterxml.uuid.Generators;
 import jakarta.inject.Singleton;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
-public class DonatePayTokenRepository implements TokenProvider<DonatePayToken> {
+public class DonatePayTokenRepository implements TokenProvider<DonatePayToken, DonatePayToken.Settings> {
 
   private static final String SYSTEM = "DonatePay";
   private final TokenDataRepository repository;
@@ -29,10 +29,10 @@ public class DonatePayTokenRepository implements TokenProvider<DonatePayToken> {
   }
 
   @Override
-  public DonatePayToken create(
+  public CompletableFuture<DonatePayToken> create(
     String token,
     String recipientId,
-    Map<String, Object> settings
+    DonatePayToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
     var data = new TokenData(
@@ -43,9 +43,9 @@ public class DonatePayTokenRepository implements TokenProvider<DonatePayToken> {
       SYSTEM,
       true,
       false,
-      settings
+      settings.asJsonMap()
     );
     repository.save(data);
-    return convert(data);
+    return CompletableFuture.completedFuture(convert(data));
   }
 }

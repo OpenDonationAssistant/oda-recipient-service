@@ -3,7 +3,6 @@ package io.github.opendonationassistant.token.repository;
 import com.fasterxml.uuid.Generators;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +40,11 @@ public class TokenRepository {
     String type
   ) {
     return repository
-      .findByRecipientIdAndSystemAndTypeAndDeletedFalse(recipientId, system, type)
+      .findByRecipientIdAndSystemAndTypeAndDeletedFalse(
+        recipientId,
+        system,
+        type
+      )
       .stream()
       .map(this::convert)
       .toList();
@@ -53,7 +56,7 @@ public class TokenRepository {
     String recipientId,
     String system
   ) {
-    return create(token, type, recipientId, system, new HashMap<>());
+    return create(token, type, recipientId, system, Map.of());
   }
 
   public Token create(

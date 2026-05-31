@@ -3,7 +3,8 @@ package io.github.opendonationassistant.token.command;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.twitch.TwitchClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
-import io.github.opendonationassistant.token.repository.TokenRepository;
+import io.github.opendonationassistant.token.repository.TwitchToken;
+import io.github.opendonationassistant.token.repository.TwitchTokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -14,7 +15,6 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,13 +22,13 @@ import java.util.concurrent.CompletableFuture;
 public class LinkTwitch extends BaseController {
 
   private final TwitchClient twitch;
-  private final TokenRepository repository;
+  private final TwitchTokenRepository repository;
   private final RabbitClient rabbit;
 
   @Inject
   public LinkTwitch(
     TwitchClient twitch,
-    TokenRepository repository,
+    TwitchTokenRepository repository,
     @Named("commands") RabbitClient rabbit
   ) {
     this.twitch = twitch;
@@ -59,39 +59,39 @@ public class LinkTwitch extends BaseController {
             return new UserData(it, response.refreshToken());
           })
       )
-      .thenApply(response -> {
+      .thenCompose(response -> {
         if (response.user().isEmpty()) {
-          return HttpResponse.unauthorized();
+          return CompletableFuture.completedFuture(HttpResponse.unauthorized());
         }
         var user = response.user().get();
-        var token = repository.create(
-          response.refreshToken(),
-          "refreshToken",
-          owner.get(),
-          "Twitch",
-          Map.of(
-            "id",
-            user.id(),
-            "name",
-            user.displayName(),
-            "email",
-            user.email(),
-            "avatar",
-            user.profileImageUrl()
-          )
-        );
-        rabbit.sendCommand(
-          new LinkTwitchAccount(
+        return repository
+          .create(
+            response.refreshToken(),
             owner.get(),
-            user.id(),
-            user.login(),
-            token.data().id()
+            new TwitchToken.Settings(
+              user.id(),
+              user.displayName(),
+              user.profileImageUrl(),
+              user.email()
+            )
           )
-        );
-        rabbit.sendCommand(
-          new SubscribeAllTwitchEventsCommand(owner.get(), token.data().id())
-        );
-        return HttpResponse.ok();
+          .thenApply(token -> {
+            rabbit.sendCommand(
+              new LinkTwitchAccount(
+                owner.get(),
+                user.id(),
+                user.login(),
+                token.data().id()
+              )
+            );
+            rabbit.sendCommand(
+              new SubscribeAllTwitchEventsCommand(
+                owner.get(),
+                token.data().id()
+              )
+            );
+            return HttpResponse.ok();
+          });
       });
   }
 

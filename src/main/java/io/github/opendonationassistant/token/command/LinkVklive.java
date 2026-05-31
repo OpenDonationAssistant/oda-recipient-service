@@ -3,7 +3,8 @@ package io.github.opendonationassistant.token.command;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.vklive.VKLiveClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
-import io.github.opendonationassistant.token.repository.TokenRepository;
+import io.github.opendonationassistant.token.repository.VkliveToken;
+import io.github.opendonationassistant.token.repository.VkliveTokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -13,20 +14,19 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
 public class LinkVklive extends BaseController {
 
   private final VKLiveClient vklive;
-  private final TokenRepository repository;
+  private final VkliveTokenRepository repository;
   private final RabbitClient rabbit;
 
   @Inject
   public LinkVklive(
     VKLiveClient vklive,
-    TokenRepository repository,
+    VkliveTokenRepository repository,
     RabbitClient rabbit
   ) {
     this.vklive = vklive;
@@ -57,31 +57,30 @@ public class LinkVklive extends BaseController {
             return new UserData(it, response.refreshToken());
           })
       )
-      .thenApply(response -> {
-        var token = repository.create(
-          response.refreshToken(),
-          "refreshToken",
-          owner.get(),
-          "VKLive",
-          Map.of(
-            "id",
-            response.user().id(),
-            "name",
-            response.user().nick(),
-            "avatar",
-            response.user().avatarUrl()
-          )
-        );
-        rabbit.sendCommand(
-          new LinkVkAccount(
+      .thenCompose(response ->
+        repository
+          .create(
+            response.refreshToken(),
             owner.get(),
-            token.data().id(),
-            response.user().id(),
-            response.user().nick()
+            new VkliveToken.Settings(
+              response.user().id(),
+              response.user().nick(),
+              response.user().avatarUrl(),
+              null
+            )
           )
-        );
-        return HttpResponse.ok();
-      });
+          .thenApply(token -> {
+            rabbit.sendCommand(
+              new LinkVkAccount(
+                owner.get(),
+                token.data().id(),
+                response.user().id(),
+                response.user().nick()
+              )
+            );
+            return HttpResponse.ok();
+          })
+      );
   }
 
   @Serdeable

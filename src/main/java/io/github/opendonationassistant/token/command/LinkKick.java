@@ -3,8 +3,8 @@ package io.github.opendonationassistant.token.command;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.integration.kick.KickClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
+import io.github.opendonationassistant.token.repository.KickToken;
 import io.github.opendonationassistant.token.repository.KickTokenRepository;
-import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -14,7 +14,6 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,37 +63,36 @@ public class LinkKick extends BaseController {
             );
           })
       )
-      .thenApply(response -> {
+      .thenCompose(response -> {
         if (response.user().isEmpty()) {
-          return HttpResponse.unauthorized();
+          return CompletableFuture.completedFuture(HttpResponse.unauthorized());
         }
         var user = response.user().get();
-        var token = tokenRepository.create(
-          response.refreshToken(),
-          owner.get(),
-          Map.of(
-            "id",
-            user.id(),
-            "name",
-            user.name(),
-            "email",
-            user.email(),
-            "avatar",
-            user.avatar()
-          )
-        );
-        rabbit.sendCommand(
-          new LinkKickAccount(
-            user.id(),
-            user.name(),
+        return tokenRepository
+          .create(
+            response.refreshToken(),
             owner.get(),
-            token.data().id()
+            new KickToken.Settings(
+              user.id(),
+              user.name(),
+              user.avatar(),
+              user.email()
+            )
           )
-        );
-        rabbit.sendCommand(
-          new SubscribeAllKickEventsCommand(owner.get(), token.data().id())
-        );
-        return HttpResponse.ok();
+          .thenApply(token -> {
+            rabbit.sendCommand(
+              new LinkKickAccount(
+                user.id(),
+                user.name(),
+                owner.get(),
+                token.data().id()
+              )
+            );
+            rabbit.sendCommand(
+              new SubscribeAllKickEventsCommand(owner.get(), token.data().id())
+            );
+            return HttpResponse.ok();
+          });
       });
   }
 
