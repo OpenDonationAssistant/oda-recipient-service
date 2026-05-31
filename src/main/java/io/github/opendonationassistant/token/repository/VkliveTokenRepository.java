@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 public class VkliveTokenRepository
   implements TokenProvider<VkliveToken, VkliveToken.Settings> {
 
-  private static final String SYSTEM = "VKlive";
+  private static final String SYSTEM = "VKLive";
   private final TokenDataRepository repository;
   private final VKLiveClient client;
   private final RabbitClient rabbit;
