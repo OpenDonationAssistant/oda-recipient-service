@@ -65,8 +65,7 @@ public class LinkVklive extends BaseController {
             new VkliveToken.Settings(
               response.user().id(),
               response.user().nick(),
-              response.user().avatarUrl(),
-              null
+              response.user().avatarUrl()
             )
           )
           .thenApply(token -> {

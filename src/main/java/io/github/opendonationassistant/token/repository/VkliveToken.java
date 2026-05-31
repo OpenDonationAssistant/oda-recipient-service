@@ -28,10 +28,10 @@ public class VkliveToken extends RefreshToken {
   }
 
   @Serdeable
-  public record Settings(String id, String name, String avatar, String email)
+  public record Settings(String id, String name, String avatar)
     implements JsonConvertable {
     public Map<String, Object> asJsonMap() {
-      return Map.of("id", id, "name", name, "avatar", avatar, "email", email);
+      return Map.of("id", id, "name", name, "avatar", avatar);
     }
   }
 

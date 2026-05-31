@@ -25,7 +25,7 @@ public class TokenRepositoryTest {
     vkliveTokenRepository.create(
       "token",
       "testuser",
-      new Settings("vkid", "vkname", "vkavatar", "vkemail")
+      new Settings("vkid", "vkname", "vkavatar")
     );
     var expected = tokenRepository
       .findByRecipientId("testuser")
@@ -37,6 +37,5 @@ public class TokenRepositoryTest {
     assertEquals("vkid", expected.get().data().settings().get("id"));
     assertEquals("vkname", expected.get().data().settings().get("name"));
     assertEquals("vkavatar", expected.get().data().settings().get("avatar"));
-    assertEquals("vkemail", expected.get().data().settings().get("email"));
   }
 }
