@@ -99,7 +99,7 @@ public class KickClient implements OauthClient {
   ) {}
 
   @Override
-  public CompletableFuture<String> obtainAccessToken(String token) {
+  public CompletableFuture<RefreshedTokens> obtainAccessToken(String token) {
     var params = new HashMap<String, String>();
     params.put("client_id", clientId);
     params.put("client_secret", clientSecret);
@@ -107,6 +107,8 @@ public class KickClient implements OauthClient {
     params.put("refresh_token", token);
     return auth
       .getToken(params)
-      .thenApply(GetAccessRecordResponse::accessToken);
+      .thenApply(response ->
+        new RefreshedTokens(response.accessToken(), response.refreshToken())
+      );
   }
 }

@@ -48,14 +48,14 @@ public class DiscordClient implements OauthClient {
   }
 
   @Override
-  public CompletableFuture<String> obtainAccessToken(String refreshToken) {
+  public CompletableFuture<RefreshedTokens> obtainAccessToken(String refreshToken) {
     var params = new HashMap<String, String>();
     params.put("grant_type", "refresh_token");
     params.put("refresh_token", refreshToken);
     params.put("redirect_uri", redirect);
     return client
       .getToken(params)
-      .thenApply(response -> response.accessToken());
+      .thenApply(response -> new RefreshedTokens(response.accessToken(), response.refreshToken()));
   }
 
   @Client("discord")

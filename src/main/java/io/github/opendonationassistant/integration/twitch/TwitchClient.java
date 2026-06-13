@@ -54,14 +54,20 @@ public class TwitchClient implements OauthClient {
   }
 
   @Override
-  public CompletableFuture<String> obtainAccessToken(String refreshToken) {
+  public CompletableFuture<RefreshedTokens> obtainAccessToken(
+    String refreshToken
+  ) {
     var params = new HashMap<String, String>();
     params.put("client_id", clientId);
     params.put("client_secret", clientSecret);
     params.put("grant_type", "refresh_token");
     params.put("refresh_token", refreshToken);
     params.put("redirect_uri", redirect);
-    return auth.getToken(params).thenApply(response -> response.accessToken());
+    return auth
+      .getToken(params)
+      .thenApply(response ->
+        new RefreshedTokens(response.accessToken(), response.refreshToken())
+      );
   }
 
   public CompletableFuture<Optional<TwitchUser>> getUser(String accessToken) {

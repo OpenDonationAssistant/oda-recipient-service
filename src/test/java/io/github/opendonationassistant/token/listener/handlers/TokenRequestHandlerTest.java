@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.opendonationassistant.rabbit.TokenRPC.TokenRequest;
+import io.github.opendonationassistant.token.repository.OauthClient.RefreshedTokens;
 import io.github.opendonationassistant.token.repository.TokenData;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.github.opendonationassistant.token.repository.TwitchToken;
@@ -37,7 +38,7 @@ public class TokenRequestHandlerTest {
     );
 
     Mockito.when(twitchToken.obtainAccessToken()).thenReturn(
-      CompletableFuture.completedFuture("accessToken")
+      CompletableFuture.completedFuture(new RefreshedTokens("accessToken", "refreshToken"))
     );
 
     Mockito.when(tokenRepository.findById(Mockito.anyString())).thenReturn(
@@ -67,7 +68,7 @@ public class TokenRequestHandlerTest {
     );
 
     Mockito.when(twitchToken.obtainAccessToken()).thenReturn(
-      CompletableFuture.completedFuture("accessToken")
+      CompletableFuture.completedFuture(new RefreshedTokens("accessToken", "refreshToken"))
     );
 
     Mockito.when(tokenRepository.findById("refreshTokenId")).thenReturn(

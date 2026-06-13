@@ -45,6 +45,19 @@ public record TokenData(
     );
   }
 
+  public TokenData withToken(String token) {
+    return new TokenData(
+      id,
+      token,
+      type,
+      recipientId,
+      system,
+      enabled,
+      deleted,
+      settings
+    );
+  }
+
   public TokenData withSettings(Map<String, Object> settings) {
     return new TokenData(
       id,

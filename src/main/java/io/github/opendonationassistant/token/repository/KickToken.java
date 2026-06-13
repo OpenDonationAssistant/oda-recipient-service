@@ -23,16 +23,13 @@ public class KickToken extends RefreshToken {
 
   @Override
   public CompletableFuture<Void> delete() {
-    return obtainAccessToken()
-      .thenCompose(token -> {
-        rabbit.sendCommand(
-          new UnsubscribeKickEventsCommand(data().recipientId(), data().id())
-        );
-        rabbit.sendCommand(
-          new UnlinkKickAccount(data().recipientId(), data().id())
-        );
-        return super.delete();
-      });
+    rabbit.sendCommand(
+      new UnsubscribeKickEventsCommand(data().recipientId(), data().id())
+    );
+    rabbit.sendCommand(
+      new UnlinkKickAccount(data().recipientId(), data().id())
+    );
+    return super.delete();
   }
 
   @Serdeable

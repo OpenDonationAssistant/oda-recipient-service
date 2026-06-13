@@ -55,7 +55,7 @@ public class GetAccessToken extends BaseController {
         token
           .obtainAccessToken()
           .thenApply(it ->
-            (HttpResponse<AccessToken>) HttpResponse.ok(new AccessToken(it))
+            (HttpResponse<AccessToken>) HttpResponse.ok(new AccessToken(it.accessToken()))
           )
       )
       .orElseGet(() ->

@@ -1,5 +1,6 @@
 package io.github.opendonationassistant.token.repository;
 
+import io.github.opendonationassistant.token.repository.OauthClient.RefreshedTokens;
 import java.util.concurrent.CompletableFuture;
 
 public class RefreshToken extends GenericToken {
@@ -15,7 +16,12 @@ public class RefreshToken extends GenericToken {
     this.oauth = oauth;
   }
 
-  public CompletableFuture<String> obtainAccessToken() {
-    return oauth.obtainAccessToken(this.data().token());
+  public CompletableFuture<RefreshedTokens> obtainAccessToken() {
+    return oauth
+      .obtainAccessToken(this.data().token())
+      .thenApply(response -> {
+        this.update(response.refreshToken());
+        return response;
+      });
   }
 }

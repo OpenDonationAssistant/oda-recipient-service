@@ -61,7 +61,7 @@ public class GetTwitchAccessToken extends BaseController {
           .obtainAccessToken()
           .thenApply(accessToken ->
             (HttpResponse<AccessToken>) HttpResponse.ok(
-              new AccessToken(accessToken)
+              new AccessToken(accessToken.accessToken())
             )
           )
       )

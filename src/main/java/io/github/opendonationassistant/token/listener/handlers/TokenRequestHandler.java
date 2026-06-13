@@ -43,7 +43,9 @@ public class TokenRequestHandler {
           token.data().recipientId().equals(message.recipientId())
         )
         .filter(token -> token instanceof RefreshToken)
-        .map(token -> ((RefreshToken) token).obtainAccessToken().join())
+        .map(token ->
+          ((RefreshToken) token).obtainAccessToken().join().accessToken()
+        )
         .orElse(null);
       if (obtainedToken == null) {
         log.warn(

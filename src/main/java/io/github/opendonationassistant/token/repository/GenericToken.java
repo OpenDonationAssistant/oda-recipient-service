@@ -28,6 +28,11 @@ public class GenericToken implements Token {
     this.repository.update(data);
   }
 
+  public void update(String token) {
+    this.data = this.data.withToken(token);
+    save();
+  }
+
   @Override
   public void toggle() {
     this.data = this.data.withEnabled(!data.enabled());
