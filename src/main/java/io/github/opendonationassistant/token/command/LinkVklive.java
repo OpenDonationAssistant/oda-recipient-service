@@ -51,7 +51,7 @@ public class LinkVklive extends BaseController {
           .getUser(response.accessToken())
           .thenApply(it -> {
             record UserData(
-              VKLiveClient.VKLiveUser user,
+              VKLiveClient.UserWrapper data,
               String refreshToken
             ) {}
             return new UserData(it, response.refreshToken());
@@ -63,9 +63,9 @@ public class LinkVklive extends BaseController {
             response.refreshToken(),
             owner.get(),
             new VkliveToken.Settings(
-              response.user().id(),
-              response.user().nick(),
-              response.user().avatarUrl()
+              response.data().user().id(),
+              response.data().user().nick(),
+              response.data().user().avatarUrl()
             )
           )
           .thenApply(token -> {
@@ -73,8 +73,9 @@ public class LinkVklive extends BaseController {
               new LinkVkAccount(
                 owner.get(),
                 token.data().id(),
-                response.user().id(),
-                response.user().nick()
+                response.data().user().id(),
+                response.data().user().nick(),
+                response.data().channel().url()
               )
             );
             return HttpResponse.ok();
@@ -90,6 +91,7 @@ public class LinkVklive extends BaseController {
     String recipientId,
     String refreshTokenId,
     String id,
-    String username
+    String username,
+    String channelUrl
   ) {}
 }

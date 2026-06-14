@@ -67,11 +67,10 @@ public class VKLiveClient implements OauthClient {
       );
   }
 
-  public CompletableFuture<VKLiveUser> getUser(String accessToken) {
+  public CompletableFuture<UserWrapper> getUser(String accessToken) {
     return data
       .getUser("Bearer %s".formatted(accessToken))
-      .thenApply(DataWrapper::data)
-      .thenApply(UserWrapper::user);
+      .thenApply(DataWrapper::data);
   }
 
   @Client("vklive-auth")
@@ -96,7 +95,10 @@ public class VKLiveClient implements OauthClient {
   }
 
   @Serdeable
-  public static record UserWrapper(VKLiveUser user) {}
+  public static record Channel(String url){}
+
+  @Serdeable
+  public static record UserWrapper(VKLiveUser user, Channel channel) {}
 
   @Serdeable
   public static record VKLiveUser(
