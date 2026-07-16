@@ -41,7 +41,7 @@ public class SettingsController extends BaseController {
     Authentication auth
   ) {
     var ownerId = getOwnerId(auth);
-    if (ownerId.isEmpty()) {
+    if (ownerId.isEmpty() || "tabularussia".equals(ownerId.get())) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
     return CompletableFuture.supplyAsync(() -> {

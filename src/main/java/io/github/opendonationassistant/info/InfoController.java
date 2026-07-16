@@ -21,12 +21,15 @@ public class InfoController {
     if (auth == null) {
       return HttpResponse.ok(new Info(false, ""));
     }
+    var username = String.valueOf(
+          auth.getAttributes().getOrDefault("preferred_username", "")
+        );
+    if ("tabularussia".equals(username)) {
+      return HttpResponse.ok(new Info(false, ""));
+    }
     return HttpResponse.ok(
       new Info(
-        true,
-        String.valueOf(
-          auth.getAttributes().getOrDefault("preferred_username", "")
-        )
+        true, username
       )
     );
   }
