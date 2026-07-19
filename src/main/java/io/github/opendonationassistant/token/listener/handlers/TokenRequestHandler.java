@@ -10,6 +10,7 @@ import io.micronaut.rabbitmq.annotation.RabbitListener;
 import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 @RabbitListener
 public class TokenRequestHandler {
@@ -42,10 +43,12 @@ public class TokenRequestHandler {
         .filter(token ->
           token.data().recipientId().equals(message.recipientId())
         )
-        .filter(token -> token instanceof RefreshToken)
-        .map(token ->
-          ((RefreshToken) token).obtainAccessToken().join().accessToken()
-        )
+        .map(token -> {
+          if (token instanceof RefreshToken refreshToken) {
+            return refreshToken.obtainAccessToken().join().accessToken();
+          }
+          return token.data().token();
+        })
         .orElse(null);
       if (obtainedToken == null) {
         log.warn(
@@ -61,6 +64,7 @@ public class TokenRequestHandler {
       }
       return new TokenResponse(obtainedToken, "");
     } catch (Exception e) {
+      var errorMessage = Optional.ofNullable(e.getMessage()).orElse("");
       log.error(
         "Failed to obtain token",
         Map.of(
@@ -69,10 +73,10 @@ public class TokenRequestHandler {
           "refreshTokenId",
           message.refreshTokenId(),
           "error",
-          e.getMessage()
+          errorMessage
         )
       );
-      return new TokenResponse(null, e.getMessage());
+      return new TokenResponse(null, errorMessage);
     }
   }
 }

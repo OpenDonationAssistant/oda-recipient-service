@@ -18,6 +18,12 @@ twitch-auth.client.secret: secret
 vklive-auth.redirect: https://widgets.oda.digital
 vklive-auth.client.id: id
 vklive-auth.client.secret: secret
+streamelements-auth.redirect: https://widgets.oda.digital
+streamelements-auth.client.id: id
+streamelements-auth.client.secret: secret
+streamlabs-auth.redirect: https://widgets.oda.digital
+streamlabs-auth.client.id: id
+streamlabs-auth.client.secret: secret
 micronaut:
   http:
     services:

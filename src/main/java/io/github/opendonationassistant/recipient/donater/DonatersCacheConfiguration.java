@@ -4,7 +4,6 @@ import io.github.opendonationassistant.SerdeableEntryMarshaller;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Requires;
-
 import java.util.HashMap;
 import java.util.Map;
 import org.infinispan.client.hotrod.DataFormat;
@@ -21,12 +20,10 @@ public class DonatersCacheConfiguration {
   public Map<String, DailyContribution> donatersCache(
     RemoteCacheManager cacheManager
   ) {
-    // return new HashMap<>();
     return cacheManager
       .getCache(DONATERS_CACHE_NAME)
       .withDataFormat(
-        DataFormat
-          .builder()
+        DataFormat.builder()
           .keyMarshaller(new UTF8StringMarshaller())
           .valueMarshaller(
             new SerdeableEntryMarshaller(DailyContribution.class)
@@ -37,7 +34,7 @@ public class DonatersCacheConfiguration {
 
   @Bean
   @Requires(env = "allinone")
-  public Map<String, DailyContribution> donatersCache(){
+  public Map<String, DailyContribution> donatersCache() {
     return new HashMap<>();
   }
 }

@@ -47,17 +47,20 @@ public class GetAccessToken extends BaseController {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
     return repository
-      .findById(command.refreshTokenId())
+      .findById(command.tokenId())
       .filter(token -> token.data().recipientId().equals(owner.get()))
-      .filter(token -> token instanceof RefreshToken)
-      .map(token -> (RefreshToken) token)
-      .map(token ->
-        token
-          .obtainAccessToken()
-          .thenApply(it ->
-            (HttpResponse<AccessToken>) HttpResponse.ok(new AccessToken(it.accessToken()))
-          )
-      )
+      .map(token -> {
+        if (token instanceof RefreshToken refreshToken) {
+          return refreshToken
+            .obtainAccessToken()
+            .thenApply(it ->
+              (HttpResponse<AccessToken>) HttpResponse.ok(new AccessToken(it.accessToken()))
+            );
+        }
+        return CompletableFuture.completedFuture(
+          (HttpResponse<AccessToken>) HttpResponse.ok(new AccessToken(token.data().token()))
+        );
+      })
       .orElseGet(() ->
         CompletableFuture.completedFuture(HttpResponse.unauthorized())
       );
@@ -67,5 +70,5 @@ public class GetAccessToken extends BaseController {
   public record AccessToken(String token) {}
 
   @Serdeable
-  public static record GetAccessTokenCommand(String refreshTokenId) {}
+  public static record GetAccessTokenCommand(String tokenId) {}
 }

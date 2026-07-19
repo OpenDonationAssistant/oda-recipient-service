@@ -9,7 +9,7 @@
   <parent>
     <groupId>io.micronaut.platform</groupId>
     <artifactId>micronaut-parent</artifactId>
-    <version>4.10.13</version>
+    <version>5.0.2</version>
   </parent>
 
   <properties>
@@ -281,7 +281,7 @@
             <arg>-Amicronaut.processing.module=oda-recipient-service</arg>
             <arg>-XDcompilePolicy=simple</arg>
             <arg>--should-stop=ifError=FLOW</arg>
-            <arg>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=io.github.opendonationassistant -XepOpt:NullAway:JSpecifyMode=true -XepOpt:NullAway:IgnoreGenerated=true</arg>
+            <arg>-Xplugin:ErrorProne -XepOpt:NullAway:AnnotatedPackages=io.github.opendonationassistant -XepOpt:NullAway:JSpecifyMode=true -Xep:NullAway:ERROR -XepExcludedPaths:.*/target/generated-sources/.*</arg>
           </compilerArgs>
         </configuration>
       </plugin>
