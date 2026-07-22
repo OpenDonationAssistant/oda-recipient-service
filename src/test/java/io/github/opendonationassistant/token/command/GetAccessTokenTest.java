@@ -50,6 +50,7 @@ public class GetAccessTokenTest {
   @Test
   public void testGetAccessTokenForGenericToken(@Given String recipientId) {
     var tokenData = Instancio.of(TokenData.class)
+      .set(Select.field(TokenData::type), "accessToken")
       .set(Select.field(TokenData::recipientId), recipientId)
       .set(Select.field(TokenData::enabled), true)
       .set(Select.field(TokenData::deleted), false)
@@ -62,15 +63,14 @@ public class GetAccessTokenTest {
 
     repository.save(tokenData);
 
-    var response = controller.getAccessToken(
-      auth,
-      new GetAccessTokenCommand(tokenData.id())
-    ).join();
+    var response = controller
+      .getAccessToken(auth, new GetAccessTokenCommand(tokenData.id()))
+      .join();
 
     assertEquals(200, response.getStatus().getCode());
-    var body = response.getBody(GetAccessToken.AccessToken.class);
-    assertTrue(body.isPresent());
-    assertEquals(tokenData.token(), body.get().token());
+    var body = response.body();
+    assertNotNull(body);
+    assertEquals(tokenData.token(), body.token());
   }
 
   @Test
@@ -94,6 +94,7 @@ public class GetAccessTokenTest {
       );
 
     var tokenData = Instancio.of(TokenData.class)
+      .set(Select.field(TokenData::type), "refreshToken")
       .set(Select.field(TokenData::recipientId), recipientId)
       .set(Select.field(TokenData::enabled), true)
       .set(Select.field(TokenData::deleted), false)
@@ -106,15 +107,14 @@ public class GetAccessTokenTest {
 
     repository.save(tokenData);
 
-    var response = controller.getAccessToken(
-      auth,
-      new GetAccessTokenCommand(tokenData.id())
-    ).join();
+    var response = controller
+      .getAccessToken(auth, new GetAccessTokenCommand(tokenData.id()))
+      .join();
 
     assertEquals(200, response.getStatus().getCode());
-    var body = response.getBody(GetAccessToken.AccessToken.class);
-    assertTrue(body.isPresent());
-    assertEquals("refreshed_access_token", body.get().token());
+    var body = response.body();
+    assertNotNull(body);
+    assertEquals("refreshed_access_token", body.token());
   }
 
   @Test
@@ -137,20 +137,18 @@ public class GetAccessTokenTest {
       Map.of("preferred_username", recipientId)
     );
 
-    var response = controller.getAccessToken(
-      auth,
-      new GetAccessTokenCommand(tokenId)
-    ).join();
+    var response = controller
+      .getAccessToken(auth, new GetAccessTokenCommand(tokenId))
+      .join();
 
     assertEquals(401, response.getStatus().getCode());
   }
 
   @Test
   public void testReturnsUnauthorizedWhenTokenNotOwnedByUser(
-    @Given String recipientId
+    @Given String recipientId,
+    @Given String otherRecipientId
   ) {
-    var otherRecipientId = Instancio.create(String.class);
-
     var tokenData = Instancio.of(TokenData.class)
       .set(Select.field(TokenData::recipientId), otherRecipientId)
       .set(Select.field(TokenData::enabled), true)
@@ -164,10 +162,9 @@ public class GetAccessTokenTest {
 
     repository.save(tokenData);
 
-    var response = controller.getAccessToken(
-      auth,
-      new GetAccessTokenCommand(tokenData.id())
-    ).join();
+    var response = controller
+      .getAccessToken(auth, new GetAccessTokenCommand(tokenData.id()))
+      .join();
 
     assertEquals(401, response.getStatus().getCode());
   }
