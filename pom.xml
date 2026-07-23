@@ -53,6 +53,12 @@
     </dependency>
     <dependency>
         <groupId>org.infinispan</groupId>
+        <artifactId>infinispan-core-graalvm</artifactId>
+        <version>16.2.1</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.infinispan</groupId>
         <artifactId>infinispan-client-hotrod-graalvm</artifactId>
         <version>16.2.1</version>
         <scope>compile</scope>

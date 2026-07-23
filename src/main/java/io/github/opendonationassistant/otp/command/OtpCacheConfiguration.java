@@ -17,7 +17,6 @@ public class OtpCacheConfiguration {
   @Bean
   @Requires(env = "standalone")
   public Map<String, String> otpCache(RemoteCacheManager cacheManager) {
-    // return new HashMap<>();
     return cacheManager
       .getCache(CACHE_NAME)
       .withDataFormat(
