@@ -26,6 +26,7 @@
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
     <sonar.language>java</sonar.language>
+    <oda.version>0.11.227</oda.version>
   </properties>
 
   <repositories>
@@ -45,11 +46,20 @@
     </dependencies>
   </dependencyManagement>
 
-  <dependencies>
+  <de<dependency>
+      <groupId>io.github.opendonationassistant</groupId>
+      <artifactId>oda-commons</artifactId>
+      <version>${oda.version}</version>
+    </dependency>pendencies>
     <dependency>
       <groupId>io.github.opendonationassistant</groupId>
       <artifactId>oda-rabbit-conf</artifactId>
-      <version>0.11.227</version>
+      <version>${oda.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.opendonationassistant</groupId>
+      <artifactId>oda-test-utils</artifactId>
+      <version>${oda.version}</version>
     </dependency>
     <dependency>
         <groupId>org.infinispan</groupId>
