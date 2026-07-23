@@ -2,6 +2,7 @@ package io.github.opendonationassistant.recipient.repository;
 
 import io.github.opendonationassistant.recipient.repository.SettingsData.Feature;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Settings {
 
@@ -22,7 +23,7 @@ public class Settings {
       .features()
       .stream()
       .filter(f -> !f.name().equals(name))
-      .toList();
+      .collect(Collectors.toList());
     updatedFeatures.add(new Feature(name, status));
     this.data = new SettingsData(
       data.id(),
