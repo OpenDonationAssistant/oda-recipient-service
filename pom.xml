@@ -46,11 +46,12 @@
     </dependencies>
   </dependencyManagement>
 
-  <de<dependency>
+  <dependencies>
+    <dependency>
       <groupId>io.github.opendonationassistant</groupId>
       <artifactId>oda-commons</artifactId>
       <version>${oda.version}</version>
-    </dependency>pendencies>
+    </dependency>
     <dependency>
       <groupId>io.github.opendonationassistant</groupId>
       <artifactId>oda-rabbit-conf</artifactId>
