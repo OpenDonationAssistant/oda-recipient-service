@@ -36,7 +36,7 @@ public class ToggleFeature extends BaseController {
     if (ownerId.isEmpty()) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
-    if (!"admin".equals(ownerId.get())) {
+    if (!isAdmin(auth)) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
     return CompletableFuture.supplyAsync(() -> {
@@ -54,4 +54,3 @@ public class ToggleFeature extends BaseController {
     SettingsData.FeatureStatus status
   ) {}
 }
-
