@@ -35,6 +35,6 @@ public class Settings {
   }
 
   public void save() {
-    repository.update(data);
+    repository.save(data);
   }
 }
