@@ -1,4 +1,4 @@
-package io.github.opendonationassistant.integration.streamlabs;
+package io.github.opendonationassistant.integration.goodgame;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.opendonationassistant.token.repository.OauthClient;
@@ -16,21 +16,21 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Singleton
-public class StreamlabsClient implements OauthClient {
+public class GoodGameClient implements OauthClient {
 
-  private final StreamlabsClientAuthApi auth;
-  private final StreamlabsClientDataApi data;
+  private final GoodGameClientAuthApi auth;
+  private final GoodGameClientDataApi data;
   private final String redirect;
   private final String clientId;
   private final String clientSecret;
 
   @Inject
-  public StreamlabsClient(
-    StreamlabsClientAuthApi auth,
-    StreamlabsClientDataApi data,
-    @Value("${streamlabs-auth.redirect}") String redirect,
-    @Value("${streamlabs-auth.client.id}") String clientId,
-    @Value("${streamlabs-auth.client.secret}") String clientSecret
+  public GoodGameClient(
+    GoodGameClientAuthApi auth,
+    GoodGameClientDataApi data,
+    @Value("${goodgame-auth.redirect}") String redirect,
+    @Value("${goodgame-auth.client.id}") String clientId,
+    @Value("${goodgame-auth.client.secret}") String clientSecret
   ) {
     this.auth = auth;
     this.data = data;
@@ -60,7 +60,6 @@ public class StreamlabsClient implements OauthClient {
     params.put("client_secret", clientSecret);
     params.put("grant_type", "refresh_token");
     params.put("refresh_token", refreshToken);
-    params.put("redirect_uri", redirect);
     return auth
       .getToken(params)
       .thenApply(response ->
@@ -68,14 +67,14 @@ public class StreamlabsClient implements OauthClient {
       );
   }
 
-  public CompletableFuture<StreamlabsUserResponse> getUser(String accessToken) {
+  public CompletableFuture<GoodGameUser> getUser(String accessToken) {
     return data.getUser("Bearer " + accessToken);
   }
 
-  @Client("streamlabs-auth")
-  public static interface StreamlabsClientAuthApi {
+  @Client("goodgame-auth")
+  public static interface GoodGameClientAuthApi {
     @Post(
-      value = "/api/v2.0/token",
+      value = "/oauth2/token",
       consumes = "application/json",
       produces = "application/x-www-form-urlencoded"
     )
@@ -84,23 +83,21 @@ public class StreamlabsClient implements OauthClient {
     );
   }
 
-  @Client("streamlabs-data")
-  public static interface StreamlabsClientDataApi {
-    @Get("/api/v2.0/user")
-    CompletableFuture<StreamlabsUserResponse> getUser(
+  @Client("goodgame-data")
+  public static interface GoodGameClientDataApi {
+    @Get("/api/4/user/")
+    CompletableFuture<GoodGameUser> getUser(
       @Header("Authorization") String auth
     );
   }
 
   @Serdeable
-  public static record StreamlabsUserResponse(
-    StreamlabsAccount streamlabs
-  ) {}
-
-  @Serdeable
-  public static record StreamlabsAccount(
+  public static record GoodGameUser(
     int id,
-    @JsonProperty("display_name") String displayName
+    String nickname,
+    String username,
+    String avatar,
+    String email
   ) {}
 
   @Serdeable

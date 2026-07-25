@@ -2,7 +2,7 @@ package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.token.client.DonationAlertsClient;
+import io.github.opendonationassistant.integration.donationalerts.DonationAlertsClient;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.stcarolas.oda</groupId>
   <artifactId>oda-recipient-service</artifactId>
-  <version>0.11.0</version>
+  <version>0.12.0</version>
   <packaging>${packaging}</packaging>
 
   <parent>
@@ -26,7 +26,7 @@
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
     <sonar.language>java</sonar.language>
-    <oda.version>0.11.227</oda.version>
+    <oda.version>0.11.228</oda.version>
   </properties>
 
   <repositories>

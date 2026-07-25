@@ -24,6 +24,9 @@ streamelements-auth.client.secret: secret
 streamlabs-auth.redirect: https://widgets.oda.digital
 streamlabs-auth.client.id: id
 streamlabs-auth.client.secret: secret
+goodgame-auth.redirect: https://widgets.oda.digital
+goodgame-auth.client.id: id
+goodgame-auth.client.secret: secret
 micronaut:
   http:
     services:
@@ -31,3 +34,15 @@ micronaut:
         url: http://localhost:8080
       donatepay:
         url: http://localhost:8080
+      streamlabs-auth:
+        url: https://streamlabs.com
+      streamlabs-data:
+        url: https://streamlabs.com
+      goodgame-auth:
+        url: https://goodgame.ru
+      goodgame-data:
+        url: https://goodgame.ru
+      streamelements-auth:
+        url: https://api.streamelements.com
+      streamelements-data:
+        url: https://api.streamelements.com

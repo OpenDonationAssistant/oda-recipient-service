@@ -1,4 +1,4 @@
-package io.github.opendonationassistant.token.client;
+package io.github.opendonationassistant.integration.donationalerts;
 
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;

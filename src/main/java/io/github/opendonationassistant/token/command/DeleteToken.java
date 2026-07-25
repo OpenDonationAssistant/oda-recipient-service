@@ -23,7 +23,7 @@ public class DeleteToken extends BaseController {
     this.repository = repository;
   }
 
-  @Post("/recipients/tokens/deletetoken")
+  @Post("/recipients/tokens/delete-token")
   @Secured(SecurityRule.IS_AUTHENTICATED)
   public CompletableFuture<HttpResponse<Void>> deleteToken(
     Authentication auth,

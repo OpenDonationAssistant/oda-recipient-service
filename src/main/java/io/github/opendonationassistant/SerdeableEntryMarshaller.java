@@ -19,6 +19,9 @@ public class SerdeableEntryMarshaller extends AbstractMarshaller {
   public Object objectFromByteBuffer(byte[] buf, int offset, int length)
     throws IOException, ClassNotFoundException {
     Object object = ObjectMapper.getDefault().readValue(buf, target);
+    if (object == null) {
+      throw new ClassNotFoundException();
+    }
     return object;
   }
 

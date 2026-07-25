@@ -20,7 +20,7 @@ public class ToggleToken extends BaseController {
     this.repository = repository;
   }
 
-  @Post("/recipients/tokens/toggletoken")
+  @Post("/recipients/tokens/toggle-token")
   @Secured(SecurityRule.IS_AUTHENTICATED)
   public HttpResponse<Void> toggleToken(
     Authentication auth,
