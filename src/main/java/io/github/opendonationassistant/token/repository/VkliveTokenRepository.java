@@ -6,7 +6,6 @@ import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -55,8 +54,12 @@ public class VkliveTokenRepository
   }
 
   @Override
-  public CompletableFuture<VkliveToken> create(String id, String token, String recipientId,
-      Map<String, Object> settings) {
+  public CompletableFuture<VkliveToken> create(
+    String id,
+    String token,
+    String recipientId,
+    Map<String, Object> settings
+  ) {
     var data = new TokenData(
       id,
       token,
