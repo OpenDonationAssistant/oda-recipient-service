@@ -4,6 +4,7 @@ import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.vklive.VKLiveClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import java.util.Map;
@@ -23,7 +24,7 @@ public class VkliveTokenRepository
   public VkliveTokenRepository(
     TokenDataRepository repository,
     VKLiveClient client,
-    RabbitClient rabbit
+    @Named("commands") RabbitClient rabbit
   ) {
     this.repository = repository;
     this.client = client;

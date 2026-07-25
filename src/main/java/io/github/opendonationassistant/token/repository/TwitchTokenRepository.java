@@ -4,6 +4,7 @@ import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.twitch.TwitchClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +23,7 @@ public class TwitchTokenRepository
   public TwitchTokenRepository(
     TokenDataRepository repository,
     TwitchClient client,
-    RabbitClient rabbit
+    @Named("commands") RabbitClient rabbit
   ) {
     this.repository = repository;
     this.client = client;

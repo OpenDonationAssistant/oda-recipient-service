@@ -1,7 +1,9 @@
 package io.github.opendonationassistant.recipient.repository;
 
 import com.fasterxml.uuid.Generators;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.List;
 
@@ -9,10 +11,15 @@ import java.util.List;
 public class SettingsRepository {
 
   private final SettingsDataRepository repository;
+  private final RabbitClient eventsFacade;
 
   @Inject
-  public SettingsRepository(SettingsDataRepository repository) {
+  public SettingsRepository(
+    SettingsDataRepository repository,
+    @Named("events") RabbitClient eventsFacade
+  ) {
     this.repository = repository;
+    this.eventsFacade = eventsFacade;
   }
 
   public Settings get(String recipientId) {
@@ -20,7 +27,8 @@ public class SettingsRepository {
       repository
         .findByRecipientId(recipientId)
         .orElseGet(() -> defaultSettings(recipientId)),
-      repository
+      repository,
+      eventsFacade
     );
   }
 
