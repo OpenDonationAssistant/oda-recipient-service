@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.repository;
 
 import com.fasterxml.uuid.Generators;
 import jakarta.inject.Singleton;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,6 +29,16 @@ public class DonationAlertsTokenRepository
     DonationAlertsToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
+    return create(id, token, recipientId, settings.asJsonMap());
+  }
+
+  @Override
+  public CompletableFuture<DonationAlertsToken> create(
+    String id,
+    String token,
+    String recipientId,
+    Map<String, Object> settings
+  ) {
     var data = new TokenData(
       id,
       token,
@@ -36,7 +47,7 @@ public class DonationAlertsTokenRepository
       SYSTEM,
       true,
       false,
-      settings.asJsonMap()
+      settings
     );
     repository.save(data);
     return CompletableFuture.completedFuture(convert(data));

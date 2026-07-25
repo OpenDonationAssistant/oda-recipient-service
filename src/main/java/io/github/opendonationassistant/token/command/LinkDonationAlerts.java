@@ -65,17 +65,16 @@ public class LinkDonationAlerts extends BaseController {
     log.info("Issue new DA token", Map.of("recipientId", owner.get()));
     return client
       .getToken(params)
-      .thenApply(response -> {
-        repository
-          .create(
-            response.accessToken(),
-            "accessToken",
-            owner.get(),
-            "DonationAlerts"
-          )
-          .save();
-        return HttpResponse.ok();
-      });
+      .thenCompose(response ->
+        repository.create(
+          response.accessToken(),
+          "accessToken",
+          owner.get(),
+          "DonationAlerts"
+        )
+      )
+      .thenApply(it -> (HttpResponse<Void>) HttpResponse.<Void>ok())
+      .exceptionally(it -> HttpResponse.<Void>serverError());
   }
 
   @Serdeable

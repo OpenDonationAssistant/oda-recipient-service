@@ -38,17 +38,16 @@ public class LinkDiscord extends BaseController {
     }
     return client
       .link(command.authorizationCode())
-      .thenApply(response -> {
-        tokenRepository
-          .create(
-            response.refreshToken(),
-            "refreshToken",
-            owner.get(),
-            "Discord"
-          )
-          .save();
-        return HttpResponse.ok();
-      });
+      .thenCompose(response ->
+        tokenRepository.create(
+          response.refreshToken(),
+          "refreshToken",
+          owner.get(),
+          "Discord"
+        )
+      )
+      .thenApply(it -> (HttpResponse<Void>) HttpResponse.<Void>ok())
+      .exceptionally(it -> HttpResponse.<Void>serverError());
   }
 
   @Serdeable

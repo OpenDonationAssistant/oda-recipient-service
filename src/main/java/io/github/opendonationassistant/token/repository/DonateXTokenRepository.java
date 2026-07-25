@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.repository;
 
 import jakarta.inject.Singleton;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,18 +30,7 @@ public class DonateXTokenRepository implements TokenProvider<DonateXToken, Donat
     DonateXToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
-    var data = new TokenData(
-      id,
-      token,
-      "accessToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings.asJsonMap()
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
+    return create(id, token, recipientId, settings.asJsonMap());
   }
 
   public Optional<DonateXToken> findById(String id) {
@@ -51,5 +41,22 @@ public class DonateXTokenRepository implements TokenProvider<DonateXToken, Donat
 
   public DonateXToken convert(TokenData data) {
     return new DonateXToken(data, repository);
+  }
+
+  @Override
+  public CompletableFuture<DonateXToken> create(String id, String token, String recipientId,
+      Map<String, Object> settings) {
+    var data = new TokenData(
+      id,
+      token,
+      "accessToken",
+      recipientId,
+      SYSTEM,
+      true,
+      false,
+      settings
+    );
+    repository.save(data);
+    return CompletableFuture.completedFuture(convert(data));
   }
 }

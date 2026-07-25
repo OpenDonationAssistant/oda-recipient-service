@@ -25,11 +25,29 @@ public class GenericToken implements Token {
 
   @Override
   public void save() {
-    this.repository.update(data);
+    log.info(
+      "Saving token",
+      Map.of(
+        "id",
+        data.id(),
+        "recipientId",
+        data.recipientId(),
+        "system",
+        data.system()
+      )
+    );
+    this.repository.save(data);
   }
 
   public void update(String token) {
     this.data = this.data.withToken(token);
+    save();
+  }
+
+  public void update(Map<String, Object> settings) {
+    var updated = new HashMap<>(this.data().settings());
+    updated.putAll(settings);
+    this.data = this.data.withSettings(updated);
     save();
   }
 

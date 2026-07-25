@@ -29,3 +29,5 @@ micronaut:
     services:
       kick-auth:
         url: http://localhost:8080
+      donatepay:
+        url: http://localhost:8080

@@ -6,6 +6,7 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class TokenRepository {
@@ -50,7 +51,7 @@ public class TokenRepository {
       .toList();
   }
 
-  public Token create(
+  public CompletableFuture<Token> create(
     String token,
     String type,
     String recipientId,
@@ -59,7 +60,7 @@ public class TokenRepository {
     return create(token, type, recipientId, system, Map.of());
   }
 
-  public Token create(
+  public CompletableFuture<Token> create(
     String token,
     String type,
     String recipientId,
@@ -67,18 +68,25 @@ public class TokenRepository {
     Map<String, Object> settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
-    var data = new TokenData(
-      id,
-      token,
-      type,
-      recipientId,
-      system,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return convert(data);
+    return create(id, token, type, recipientId, system, settings);
+  }
+
+  public CompletableFuture<Token> create(
+    String id,
+    String token,
+    String type,
+    String recipientId,
+    String system,
+    Map<String, Object> settings
+  ) {
+    return providers
+      .stream()
+      .filter(provider -> provider.system().equals(system))
+      .findFirst()
+      .map(provider -> provider.create(id, token, recipientId, settings))
+      .orElseThrow(() ->
+        new IllegalArgumentException("Unknown system: " + system)
+      );
   }
 
   private Token convert(TokenData data) {

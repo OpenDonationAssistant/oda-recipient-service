@@ -5,6 +5,8 @@ import io.github.opendonationassistant.integration.vklive.VKLiveClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -40,18 +42,7 @@ public class VkliveTokenRepository
     VkliveToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
-    var data = new TokenData(
-      id,
-      token,
-      "refreshToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings.asJsonMap()
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
+    return create(id, token, recipientId, settings.asJsonMap());
   }
 
   public Optional<VkliveToken> findById(String id) {
@@ -60,5 +51,22 @@ public class VkliveTokenRepository
 
   public VkliveToken convert(TokenData data) {
     return new VkliveToken(client, data, repository, rabbit);
+  }
+
+  @Override
+  public CompletableFuture<VkliveToken> create(String id, String token, String recipientId,
+      Map<String, Object> settings) {
+    var data = new TokenData(
+      id,
+      token,
+      "refreshToken",
+      recipientId,
+      SYSTEM,
+      true,
+      false,
+      settings
+    );
+    repository.save(data);
+    return CompletableFuture.completedFuture(convert(data));
   }
 }

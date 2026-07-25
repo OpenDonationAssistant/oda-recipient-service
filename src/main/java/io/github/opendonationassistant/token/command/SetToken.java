@@ -2,8 +2,8 @@ package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.token.repository.TokenData;
-import io.github.opendonationassistant.token.repository.TokenDataRepository;
+import io.github.opendonationassistant.token.repository.Token;
+import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -14,65 +14,64 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
 public class SetToken extends BaseController {
 
-  private TokenDataRepository repository;
-
-  private final ODALogger log = new ODALogger(this);
+  private TokenRepository repository;
+  private ODALogger log = new ODALogger(this);
 
   @Inject
-  public SetToken(TokenDataRepository repository) {
+  public SetToken(TokenRepository repository) {
     this.repository = repository;
   }
 
-  @Post("/recipients/tokens/settoken")
+  @Post("/recipients/tokens/set-token")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  public HttpResponse<Void> setToken(
+  public CompletableFuture<HttpResponse<Void>> setToken(
     Authentication auth,
     @Body SetTokenCommand command
   ) {
     var owner = getOwnerId(auth);
     if (owner.isEmpty()) {
-      return HttpResponse.unauthorized();
+      return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
-    var data = new TokenData(
-      command.id(),
-      command.token(),
-      command.type(),
-      owner.get(),
-      command.system(),
-      true,
-      false,
-      command.settings()
-    );
-    Optional.ofNullable(command.id())
-      .flatMap(repository::findById)
-      .ifPresentOrElse(
-        existed -> {
-          log.info("Updating token", Map.of("id", command.id()));
-          repository.update(data);
-        },
-        () -> {
-          log.info(
-            "Creating token",
-            Map.of(
-              "id",
-              command.id(),
-              "type",
-              command.type(),
-              "system",
-              command.system(),
-              "recipientId",
-              owner.get()
-            )
-          );
-          repository.save(data);
-        }
+    var existing = repository.findById(command.id());
+    CompletableFuture<Token> token;
+    if (existing.isEmpty()) {
+      log.debug("Existing token not found", Map.of("id", command.id()));
+      token = repository.create(
+        command.id(),
+        command.token(),
+        command.type(),
+        command.system(),
+        command.settings()
       );
-    return HttpResponse.ok();
+    } else {
+      var existingToken = existing.get();
+      if (!existingToken.data().recipientId().equals(owner.get())) {
+        log.debug(
+          "Existing token does not belong to user",
+          Map.of(
+            "id",
+            command.id(),
+            "recipientId",
+            owner.get(),
+            "ownerId",
+            existingToken.data().recipientId()
+          )
+        );
+        return CompletableFuture.completedFuture(HttpResponse.unauthorized());
+      }
+      log.debug(
+        "Updating existing token",
+        Map.of("id", command.id(), "recipientId", owner.get())
+      );
+      existingToken.update(command.settings());
+      token = CompletableFuture.completedFuture(existingToken);
+    }
+    return token.thenApply(it -> HttpResponse.ok());
   }
 
   @Serdeable

@@ -4,6 +4,7 @@ import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.discord.DiscordClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +37,16 @@ public class DiscordTokenRepository
     DiscordToken.Settings settings
   ) {
     var id = Generators.timeBasedEpochGenerator().generate().toString();
+    return create(id, token, recipientId, settings.asJsonMap());
+  }
+
+  @Override
+  public CompletableFuture<DiscordToken> create(
+    String id,
+    String token,
+    String recipientId,
+    Map<String, Object> settings
+  ) {
     var data = new TokenData(
       id,
       token,
@@ -44,7 +55,7 @@ public class DiscordTokenRepository
       SYSTEM,
       true,
       false,
-      settings.asJsonMap()
+      settings
     );
     repository.save(data);
     return CompletableFuture.completedFuture(convert(data));
