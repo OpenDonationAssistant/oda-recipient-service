@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.repository;
 
 import io.github.opendonationassistant.JsonConvertable;
 import io.github.opendonationassistant.integration.discord.DiscordClient;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 
@@ -10,14 +11,15 @@ public class DiscordToken extends RefreshToken {
   public DiscordToken(
     DiscordClient client,
     TokenData data,
-    TokenDataRepository repository
+    TokenDataRepository repository,
+    RabbitClient events
   ) {
-    super(client, data, repository);
+    super(client, data, repository, events);
   }
 
   @Serdeable
-  public static record Settings(String id, String username) implements JsonConvertable {
-
+  public static record Settings(String id, String username)
+    implements JsonConvertable {
     @Override
     public Map<String, Object> asJsonMap() {
       return Map.of();

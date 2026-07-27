@@ -1,13 +1,18 @@
 package io.github.opendonationassistant.token.repository;
 
 import io.github.opendonationassistant.JsonConvertable;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 
 public class DonateXToken extends GenericToken {
 
-  public DonateXToken(TokenData data, TokenDataRepository repository) {
-    super(data, repository);
+  public DonateXToken(
+    TokenData data,
+    TokenDataRepository repository,
+    RabbitClient events
+  ) {
+    super(data, repository, events);
   }
 
   @Serdeable

@@ -1,13 +1,21 @@
 package io.github.opendonationassistant.token.repository;
 
+import io.github.opendonationassistant.rabbit.RabbitClient;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 @Singleton
 public class TributeTokenRepository
   extends GenericTokenProvider<TributeToken, TributeToken.Settings> {
 
-  public TributeTokenRepository(TokenDataRepository repository) {
+  private final RabbitClient events;
+
+  public TributeTokenRepository(
+    TokenDataRepository repository,
+    @Named("events") RabbitClient events
+  ) {
     super(repository);
+    this.events = events;
   }
 
   @Override
@@ -21,6 +29,6 @@ public class TributeTokenRepository
   }
 
   public TributeToken convert(TokenData data) {
-    return new TributeToken(data, repository);
+    return new TributeToken(data, repository, events);
   }
 }

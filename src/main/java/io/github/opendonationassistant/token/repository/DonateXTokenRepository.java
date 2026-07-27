@@ -1,62 +1,34 @@
 package io.github.opendonationassistant.token.repository;
 
+import io.github.opendonationassistant.rabbit.RabbitClient;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import com.fasterxml.uuid.Generators;
-
 @Singleton
-public class DonateXTokenRepository implements TokenProvider<DonateXToken, DonateXToken.Settings> {
+public class DonateXTokenRepository
+  extends GenericTokenProvider<DonateXToken, DonateXToken.Settings> {
 
-  private static final String SYSTEM = "DonateX";
-  private final TokenDataRepository repository;
+  private final RabbitClient events;
 
-  public DonateXTokenRepository(TokenDataRepository repository) {
-    this.repository = repository;
+  public DonateXTokenRepository(
+    TokenDataRepository repository,
+    @Named("events") RabbitClient events
+  ) {
+    super(repository);
+    this.events = events;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
+    return "DonateX";
   }
 
   @Override
-  public CompletableFuture<DonateXToken> create(
-    String token,
-    String recipientId,
-    DonateXToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  public Optional<DonateXToken> findById(String id) {
-    return repository
-      .findById(id)
-      .map(this::convert);
+  public String getType() {
+    return "accessToken";
   }
 
   public DonateXToken convert(TokenData data) {
-    return new DonateXToken(data, repository);
-  }
-
-  @Override
-  public CompletableFuture<DonateXToken> create(String id, String token, String recipientId,
-      Map<String, Object> settings) {
-    var data = new TokenData(
-      id,
-      token,
-      "accessToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
+    return new DonateXToken(data, repository, events);
   }
 }

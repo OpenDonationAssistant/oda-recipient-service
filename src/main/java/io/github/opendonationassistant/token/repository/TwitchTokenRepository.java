@@ -1,76 +1,43 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.twitch.TwitchClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class TwitchTokenRepository
-  implements TokenProvider<TwitchToken, TwitchToken.Settings> {
+  extends GenericTokenProvider<TwitchToken, TwitchToken.Settings> {
 
-  private static final String SYSTEM = "Twitch";
-  private final TokenDataRepository repository;
   private final TwitchClient client;
-  private RabbitClient rabbit;
+  private final RabbitClient events;
+  private final RabbitClient rabbit;
 
   @Inject
   public TwitchTokenRepository(
     TokenDataRepository repository,
+    @Named("events") RabbitClient events,
     TwitchClient client,
     @Named("commands") RabbitClient rabbit
   ) {
-    this.repository = repository;
+    super(repository);
+    this.events = events;
     this.client = client;
     this.rabbit = rabbit;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
+    return "Twitch";
   }
 
   @Override
-  public CompletableFuture<TwitchToken> create(
-    String token,
-    String recipientId,
-    TwitchToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  @Override
-  public CompletableFuture<TwitchToken> create(
-    String id,
-    String token,
-    String recipientId,
-    Map<String, Object> settings
-  ) {
-    var data = new TokenData(
-      id,
-      token,
-      "refreshToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
-  }
-
-  public Optional<TwitchToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
+  public String getType() {
+    return "refreshToken";
   }
 
   public TwitchToken convert(TokenData data) {
-    return new TwitchToken(client, data, repository, rabbit);
+    return new TwitchToken(client, data, repository, events, rabbit);
   }
 }

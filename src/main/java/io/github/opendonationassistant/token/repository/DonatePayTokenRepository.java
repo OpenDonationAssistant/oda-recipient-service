@@ -1,50 +1,42 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.donatepay.DonatePayClient;
+import io.github.opendonationassistant.rabbit.RabbitClient;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class DonatePayTokenRepository
-  implements TokenProvider<DonatePayToken, DonatePayToken.Settings> {
+  extends GenericTokenProvider<DonatePayToken, DonatePayToken.Settings> {
 
-  private static final String SYSTEM = "DonatePay";
-  private final TokenDataRepository repository;
+  private final RabbitClient events;
   private final DonatePayClient client;
 
   public DonatePayTokenRepository(
     TokenDataRepository repository,
+    @Named("events") RabbitClient events,
     DonatePayClient client
   ) {
-    this.repository = repository;
+    super(repository);
+    this.events = events;
     this.client = client;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
-  }
-
-  public Optional<DonatePayToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
-  }
-
-  public DonatePayToken convert(TokenData data) {
-    return new DonatePayToken(data, repository);
+    return "DonatePay";
   }
 
   @Override
-  public CompletableFuture<DonatePayToken> create(
-    String token,
-    String recipientId,
-    DonatePayToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
+  public String getType() {
+    return "accessToken";
+  }
+
+  public DonatePayToken convert(TokenData data) {
+    return new DonatePayToken(data, repository, events);
   }
 
   @Override
@@ -56,22 +48,10 @@ public class DonatePayTokenRepository
   ) {
     return client
       .getUser(token)
-      .thenApply(user -> {
+      .thenCompose(user -> {
         var fullSettings = new HashMap<>(settings);
         fullSettings.put("id", user.id());
-        var data = new TokenData(
-          id,
-          token,
-          "accessToken",
-          recipientId,
-          SYSTEM,
-          true,
-          false,
-          fullSettings
-        );
-        var created = convert(data);
-        created.save();
-        return created;
+        return super.create(id, token, recipientId, fullSettings);
       });
   }
 }

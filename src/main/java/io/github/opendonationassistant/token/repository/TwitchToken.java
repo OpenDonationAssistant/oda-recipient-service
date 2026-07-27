@@ -15,9 +15,10 @@ public class TwitchToken extends RefreshToken {
     TwitchClient client,
     TokenData data,
     TokenDataRepository repository,
+    RabbitClient events,
     RabbitClient rabbit
   ) {
-    super(client, data, repository);
+    super(client, data, repository, events);
     this.rabbit = rabbit;
   }
 

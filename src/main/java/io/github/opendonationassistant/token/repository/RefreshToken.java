@@ -1,5 +1,6 @@
 package io.github.opendonationassistant.token.repository;
 
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.github.opendonationassistant.token.repository.OauthClient.RefreshedTokens;
 import java.util.concurrent.CompletableFuture;
 
@@ -10,9 +11,10 @@ public class RefreshToken extends GenericToken {
   public RefreshToken(
     OauthClient oauth,
     TokenData data,
-    TokenDataRepository repository
+    TokenDataRepository repository,
+    RabbitClient events
   ) {
-    super(data, repository);
+    super(data, repository, events);
     this.oauth = oauth;
   }
 

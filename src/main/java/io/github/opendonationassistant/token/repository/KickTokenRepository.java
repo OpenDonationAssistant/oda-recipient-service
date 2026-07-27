@@ -1,71 +1,43 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.kick.KickClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 @Singleton
-public class KickTokenRepository implements TokenProvider<KickToken, KickToken.Settings> {
+public class KickTokenRepository
+  extends GenericTokenProvider<KickToken, KickToken.Settings> {
 
-  private static final String SYSTEM = "Kick";
-  private final TokenDataRepository repository;
   private final KickClient client;
+  private final RabbitClient events;
   private final RabbitClient rabbit;
 
   @Inject
   public KickTokenRepository(
     TokenDataRepository repository,
+    @Named("events") RabbitClient events,
     KickClient client,
     @Named("commands") RabbitClient rabbit
   ) {
-    this.repository = repository;
+    super(repository);
+    this.events = events;
     this.client = client;
     this.rabbit = rabbit;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
-  }
-
-  public CompletableFuture<KickToken> create(
-    String token,
-    String recipientId,
-    KickToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  public Optional<KickToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
-  }
-
-  public KickToken convert(TokenData data) {
-    return new KickToken(client, data, repository, rabbit);
+    return "Kick";
   }
 
   @Override
-  public CompletableFuture<KickToken> create(String id, String token, String recipientId,
-      Map<String, Object> settings) {
-    var data = new TokenData(
-      id,
-      token,
-      "refreshToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
+  public String getType() {
+    return "refreshToken";
+  }
+
+  public KickToken convert(TokenData data) {
+    return new KickToken(client, data, repository, events, rabbit);
   }
 }

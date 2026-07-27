@@ -1,7 +1,9 @@
 package io.github.opendonationassistant.token.repository;
 
 import com.fasterxml.uuid.Generators;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
@@ -13,14 +15,17 @@ public class TokenRepository {
 
   private final TokenDataRepository repository;
   private final List<TokenProvider> providers;
+  private final RabbitClient events;
 
   @Inject
   public TokenRepository(
     TokenDataRepository repository,
-    List<TokenProvider> providers
+    List<TokenProvider> providers,
+    @Named("events") RabbitClient events
   ) {
     this.repository = repository;
     this.providers = providers;
+    this.events = events;
   }
 
   public Optional<Token> findById(String id) {
@@ -95,6 +100,6 @@ public class TokenRepository {
       .filter(provider -> provider.system().equals(data.system()))
       .findFirst()
       .map(provider -> provider.convert(data))
-      .orElseGet(() -> new GenericToken(data, repository));
+      .orElseGet(() -> new GenericToken(data, repository, events));
   }
 }

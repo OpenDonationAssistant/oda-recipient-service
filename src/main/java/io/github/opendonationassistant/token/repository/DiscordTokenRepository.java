@@ -1,71 +1,40 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.discord.DiscordClient;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class DiscordTokenRepository
-  implements TokenProvider<DiscordToken, DiscordToken.Settings> {
+  extends GenericTokenProvider<DiscordToken, DiscordToken.Settings> {
 
-  private static final String SYSTEM = "Discord";
-  private final TokenDataRepository repository;
+  private final RabbitClient events;
   private final DiscordClient client;
 
   @Inject
   public DiscordTokenRepository(
     TokenDataRepository repository,
+    @Named("events") RabbitClient events,
     DiscordClient client
   ) {
-    this.repository = repository;
+    super(repository);
+    this.events = events;
     this.client = client;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
+    return "Discord";
   }
 
   @Override
-  public CompletableFuture<DiscordToken> create(
-    String token,
-    String recipientId,
-    DiscordToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  @Override
-  public CompletableFuture<DiscordToken> create(
-    String id,
-    String token,
-    String recipientId,
-    Map<String, Object> settings
-  ) {
-    var data = new TokenData(
-      id,
-      token,
-      "refreshToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
-  }
-
-  public Optional<DiscordToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
+  public String getType() {
+    return "refreshToken";
   }
 
   public DiscordToken convert(TokenData data) {
-    return new DiscordToken(client, data, repository);
+    return new DiscordToken(client, data, repository, events);
   }
 }

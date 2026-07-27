@@ -1,63 +1,37 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
+import io.github.opendonationassistant.rabbit.RabbitClient;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class DonationAlertsTokenRepository
-  implements TokenProvider<DonationAlertsToken, DonationAlertsToken.Settings> {
+  extends GenericTokenProvider<
+    DonationAlertsToken,
+    DonationAlertsToken.Settings
+  > {
 
-  private static final String SYSTEM = "DonationAlerts";
-  private final TokenDataRepository repository;
+  private final RabbitClient events;
 
-  public DonationAlertsTokenRepository(TokenDataRepository repository) {
-    this.repository = repository;
+  public DonationAlertsTokenRepository(
+    TokenDataRepository repository,
+    @Named("events") RabbitClient events
+  ) {
+    super(repository);
+    this.events = events;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
+    return "DonationAlerts";
   }
 
   @Override
-  public CompletableFuture<DonationAlertsToken> create(
-    String token,
-    String recipientId,
-    DonationAlertsToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  @Override
-  public CompletableFuture<DonationAlertsToken> create(
-    String id,
-    String token,
-    String recipientId,
-    Map<String, Object> settings
-  ) {
-    var data = new TokenData(
-      id,
-      token,
-      "accessToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
-  }
-
-  public Optional<DonationAlertsToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
+  public String getType() {
+    return "accessToken";
   }
 
   public DonationAlertsToken convert(TokenData data) {
-    return new DonationAlertsToken(data, repository);
+    return new DonationAlertsToken(data, repository, events);
   }
 }

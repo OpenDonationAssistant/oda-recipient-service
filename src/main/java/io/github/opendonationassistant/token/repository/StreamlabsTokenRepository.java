@@ -1,72 +1,40 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.streamlabs.StreamlabsClient;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class StreamlabsTokenRepository
-  implements TokenProvider<StreamlabsToken, StreamlabsToken.Settings> {
+  extends GenericTokenProvider<StreamlabsToken, StreamlabsToken.Settings> {
 
-  private static final String SYSTEM = "Streamlabs";
-  private final TokenDataRepository repository;
+  private final RabbitClient events;
   private final StreamlabsClient client;
 
   @Inject
   public StreamlabsTokenRepository(
     TokenDataRepository repository,
+    @Named("events") RabbitClient events,
     StreamlabsClient client
   ) {
-    this.repository = repository;
+    super(repository);
+    this.events = events;
     this.client = client;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
+    return "Streamlabs";
   }
 
   @Override
-  public CompletableFuture<StreamlabsToken> create(
-    String token,
-    String recipientId,
-    StreamlabsToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  @Override
-  public CompletableFuture<StreamlabsToken> create(
-    String id,
-    String token,
-    String recipientId,
-    Map<String, Object> settings
-  ) {
-    var data = new TokenData(
-      id,
-      token,
-      "refreshToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    var created = convert(data);
-    created.save();
-    return CompletableFuture.completedFuture(created);
-  }
-
-  public Optional<StreamlabsToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
+  public String getType() {
+    return "refreshToken";
   }
 
   public StreamlabsToken convert(TokenData data) {
-    return new StreamlabsToken(client, data, repository);
+    return new StreamlabsToken(client, data, repository, events);
   }
 }

@@ -1,76 +1,43 @@
 package io.github.opendonationassistant.token.repository;
 
-import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.integration.vklive.VKLiveClient;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Singleton
 public class VkliveTokenRepository
-  implements TokenProvider<VkliveToken, VkliveToken.Settings> {
+  extends GenericTokenProvider<VkliveToken, VkliveToken.Settings> {
 
-  private static final String SYSTEM = "VKLive";
-  private final TokenDataRepository repository;
   private final VKLiveClient client;
+  private final RabbitClient events;
   private final RabbitClient rabbit;
 
   @Inject
   public VkliveTokenRepository(
     TokenDataRepository repository,
+    @Named("events") RabbitClient events,
     VKLiveClient client,
     @Named("commands") RabbitClient rabbit
   ) {
-    this.repository = repository;
+    super(repository);
+    this.events = events;
     this.client = client;
     this.rabbit = rabbit;
   }
 
   @Override
   public String system() {
-    return SYSTEM;
+    return "VKLive";
   }
 
   @Override
-  public CompletableFuture<VkliveToken> create(
-    String token,
-    String recipientId,
-    VkliveToken.Settings settings
-  ) {
-    var id = Generators.timeBasedEpochGenerator().generate().toString();
-    return create(id, token, recipientId, settings.asJsonMap());
-  }
-
-  public Optional<VkliveToken> findById(String id) {
-    return repository.findById(id).map(this::convert);
+  public String getType() {
+    return "refreshToken";
   }
 
   public VkliveToken convert(TokenData data) {
-    return new VkliveToken(client, data, repository, rabbit);
-  }
-
-  @Override
-  public CompletableFuture<VkliveToken> create(
-    String id,
-    String token,
-    String recipientId,
-    Map<String, Object> settings
-  ) {
-    var data = new TokenData(
-      id,
-      token,
-      "refreshToken",
-      recipientId,
-      SYSTEM,
-      true,
-      false,
-      settings
-    );
-    repository.save(data);
-    return CompletableFuture.completedFuture(convert(data));
+    return new VkliveToken(client, data, repository, events, rabbit);
   }
 }

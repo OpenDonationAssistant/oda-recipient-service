@@ -1,6 +1,7 @@
 package io.github.opendonationassistant.token.repository;
 
 import io.github.opendonationassistant.JsonConvertable;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 
@@ -9,9 +10,10 @@ public class StreamElementsToken extends RefreshToken {
   public StreamElementsToken(
     OauthClient client,
     TokenData data,
-    TokenDataRepository repository
+    TokenDataRepository repository,
+    RabbitClient events
   ) {
-    super(client, data, repository);
+    super(client, data, repository, events);
   }
 
   @Serdeable

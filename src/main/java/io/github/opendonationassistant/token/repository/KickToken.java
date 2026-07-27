@@ -15,9 +15,10 @@ public class KickToken extends RefreshToken {
     KickClient oauth,
     TokenData data,
     TokenDataRepository repository,
+    RabbitClient events,
     RabbitClient rabbit
   ) {
-    super(oauth, data, repository);
+    super(oauth, data, repository, events);
     this.rabbit = rabbit;
   }
 

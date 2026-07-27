@@ -34,7 +34,7 @@ import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-@MicronautTest(environments = "allinone", transactional = false)
+@MicronautTest(environments = "allinone")
 @ExtendWith(InstancioExtension.class)
 @ExtendWith(MockServerExtension.class)
 @MockServerSettings(ports = { 8080 })
@@ -83,16 +83,22 @@ public class DeleteTokenTest {
     repository.save(token);
 
     var notDeleted = tokenRepository.findById(token.id());
-    assertTrue(notDeleted.isPresent());
+    assertTrue(notDeleted.isPresent(), "Token should be in database");
 
     controller
       .deleteToken(auth, new DeleteTokenCommand(token.id()))
       .thenAccept(result -> {
         var deleted = tokenRepository.findById(token.id());
-        assertTrue(deleted.isPresent());
-        assertTrue(deleted.get().data().deleted());
+        assertTrue(deleted.isPresent(), "Token should left in database");
+        assertTrue(
+          deleted.get().data().deleted(),
+          "Token should have `deleted` field set to `true`"
+        );
         var all = tokenRepository.findByRecipientId(token.recipientId());
-        assertTrue(all.isEmpty());
+        assertTrue(
+          all.isEmpty(),
+          "Token should be not available through listing via `findByRecipientId`"
+        );
       })
       .join();
   }
@@ -138,21 +144,29 @@ public class DeleteTokenTest {
     );
 
     repository.save(token);
-    controller.deleteToken(auth, new DeleteTokenCommand(token.id())).join();
-    var deleted = repository.findById(token.id());
-    assertTrue(deleted.isPresent());
-    assertTrue(deleted.get().deleted());
+    controller
+      .deleteToken(auth, new DeleteTokenCommand(token.id()))
+      .thenAccept(result -> {
+        var deleted = repository.findById(token.id());
+        assertTrue(deleted.isPresent());
+        assertTrue(deleted.get().deleted());
 
-    var message = channel.getChannel().basicGet(queue, true);
-    assertNotNull(message);
+        try {
+          var message = channel.getChannel().basicGet(queue, true);
+          assertNotNull(message);
 
-    var command = ObjectMapper.getDefault()
-      .readValue(
-        message.getBody(),
-        KickToken.UnsubscribeKickEventsCommand.class
-      );
-    assertNotNull(command);
-    assertEquals(token.recipientId(), command.recipientId());
-    assertEquals(token.id(), command.refreshTokenId());
+          var command = ObjectMapper.getDefault()
+            .readValue(
+              message.getBody(),
+              KickToken.UnsubscribeKickEventsCommand.class
+            );
+          assertNotNull(command);
+          assertEquals(token.recipientId(), command.recipientId());
+          assertEquals(token.id(), command.refreshTokenId());
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      })
+      .join();
   }
 }

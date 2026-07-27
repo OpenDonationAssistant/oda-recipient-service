@@ -1,14 +1,19 @@
 package io.github.opendonationassistant.token.repository;
 
 import io.github.opendonationassistant.JsonConvertable;
+import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DonationAlertsToken extends GenericToken {
 
-  public DonationAlertsToken(TokenData data, TokenDataRepository repository) {
-    super(data, repository);
+  public DonationAlertsToken(
+    TokenData data,
+    TokenDataRepository repository,
+    RabbitClient events
+  ) {
+    super(data, repository, events);
   }
 
   @Override
