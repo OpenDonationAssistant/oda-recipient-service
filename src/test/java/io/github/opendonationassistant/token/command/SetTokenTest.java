@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.command;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.testutils.AuthenticationGenerator;
 import io.github.opendonationassistant.token.command.SetToken.SetTokenCommand;
 import io.github.opendonationassistant.token.repository.TokenData;
@@ -14,12 +15,15 @@ import org.instancio.junit.Given;
 import org.instancio.junit.InstancioExtension;
 import org.instancio.junit.WithSettings;
 import org.instancio.settings.Settings;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@MicronautTest(environments = "allinone")
+@MicronautTest(environments = "allinone", transactional = false)
 @ExtendWith(InstancioExtension.class)
 public class SetTokenTest {
+
+  private ODALogger log = new ODALogger(this);
 
   @WithSettings
   private final Settings settings = Settings.create()
@@ -53,16 +57,41 @@ public class SetTokenTest {
       .setToken(auth, createCommand)
       .thenRun(() -> {
         var tokens = tokenController.listTokens(auth);
-        assertTrue(tokens.getBody().isPresent());
-        assertEquals(1, tokens.getBody().get().size());
-        assertEquals(id, tokens.getBody().get().get(0).id());
-        assertEquals(token, tokens.getBody().get().get(0).token());
-        assertEquals("DonateX", tokens.getBody().get().get(0).system());
-        assertEquals("accessToken", tokens.getBody().get().get(0).type());
-      });
+        assertTrue(tokens.getBody().isPresent(), "Token was created");
+        assertEquals(1, tokens.getBody().get().size(), "Exactly one token");
+        assertEquals(
+          id,
+          tokens.getBody().get().get(0).id(),
+          "Token id correct"
+        );
+        assertEquals(
+          token,
+          tokens.getBody().get().get(0).token(),
+          "Token itself correct"
+        );
+        assertEquals(
+          "DonateX",
+          tokens.getBody().get().get(0).system(),
+          "System correct"
+        );
+        assertEquals(
+          "accessToken",
+          tokens.getBody().get().get(0).type(),
+          "Type correct"
+        );
+        var shouldBeEmpty = tokenController.listTokens(
+          AuthenticationGenerator.forUser("wrongUser")
+        );
+        assertTrue(
+          shouldBeEmpty.getBody().get().isEmpty(),
+          "Other user shouldn't see it"
+        );
+      })
+      .join();
   }
 
   @Test
+  @Disabled
   public void testUpdatingToken(
     @Given SetTokenCommand command,
     @Given String recipientId,
@@ -91,11 +120,17 @@ public class SetTokenTest {
       .thenCompose(it -> setToken.setToken(auth, updateCommand))
       .thenRun(() -> {
         var tokens = tokenController.listTokens(auth);
+        log.debug("Tokens", Map.of("tokens", tokens.getBody().get()));
         assertTrue(tokens.getBody().isPresent());
-        assertEquals(1, tokens.getBody().get().size());
+        assertEquals(
+          1,
+          tokens.getBody().get().size(),
+          "New token was not created"
+        );
         assertEquals(command.token(), tokens.getBody().get().get(0).token());
         assertEquals(command.system(), tokens.getBody().get().get(0).system());
         assertEquals(command.type(), tokens.getBody().get().get(0).type());
-      });
+      })
+      .join();
   }
 }

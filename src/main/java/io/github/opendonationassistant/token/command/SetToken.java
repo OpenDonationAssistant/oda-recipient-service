@@ -13,6 +13,7 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,6 +46,7 @@ public class SetToken extends BaseController {
         command.id(),
         command.token(),
         command.type(),
+        owner.get(),
         command.system(),
         command.settings()
       );
