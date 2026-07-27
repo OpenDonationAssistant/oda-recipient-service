@@ -83,10 +83,9 @@ public class GenericToken implements Token {
 
   @Override
   public CompletableFuture<Void> delete() {
-    return CompletableFuture.runAsync(() -> {
-      this.data = this.data.withDeleted(true);
-      save();
-    });
+    this.data = this.data.withDeleted(true);
+    save();
+    return CompletableFuture.completedFuture(null);
   }
 
   protected Map<String, Object> defaultSettings() {

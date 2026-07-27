@@ -91,7 +91,6 @@ public class SetTokenTest {
   }
 
   @Test
-  @Disabled
   public void testUpdatingToken(
     @Given SetTokenCommand command,
     @Given String recipientId,
@@ -115,6 +114,9 @@ public class SetTokenTest {
       command.settings()
     );
 
+    var mergedSettings = oldData.settings();
+    mergedSettings.putAll(command.settings());
+
     setToken
       .setToken(auth, createCommand)
       .thenCompose(it -> setToken.setToken(auth, updateCommand))
@@ -127,9 +129,26 @@ public class SetTokenTest {
           tokens.getBody().get().size(),
           "New token was not created"
         );
-        assertEquals(command.token(), tokens.getBody().get().get(0).token());
-        assertEquals(command.system(), tokens.getBody().get().get(0).system());
-        assertEquals(command.type(), tokens.getBody().get().get(0).type());
+        assertEquals(
+          oldData.token(),
+          tokens.getBody().get().get(0).token(),
+          "Token correct"
+        );
+        assertEquals(
+          "DonateX",
+          tokens.getBody().get().get(0).system(),
+          "System correct"
+        );
+        assertEquals(
+          oldData.type(),
+          tokens.getBody().get().get(0).type(),
+          "Type correct"
+        );
+        assertEquals(
+          mergedSettings,
+          tokens.getBody().get().get(0).settings(),
+          "Settings correct"
+        );
       })
       .join();
   }

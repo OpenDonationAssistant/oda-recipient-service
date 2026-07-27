@@ -1,0 +1,1 @@
+ALTER TABLE token ADD CONSTRAINT token_pkey PRIMARY KEY (id);

@@ -11,6 +11,8 @@ micronaut:
       nThreads: 1
       type: fixed
       name: rabbit
+  data:
+    save-assigned-id-fallback-to-update: true
   security:
     token:
       bearer:
