@@ -64,6 +64,10 @@ public class Settings {
 
   public void save() {
     log.info("Saving settings", Map.of("data", data));
-    repository.save(data);
+    if (repository.existsById(data.id())) {
+      repository.update(data);
+    } else {
+      repository.save(data);
+    }
   }
 }
