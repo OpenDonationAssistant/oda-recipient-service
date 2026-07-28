@@ -60,7 +60,11 @@ public class GenericToken implements Token {
         data.system()
       )
     );
-    this.repository.save(data);
+    if (this.repository.existsById(data.id())) {
+      this.repository.update(data);
+    } else {
+      this.repository.insert(data);
+    }
   }
 
   public void update(String token) {

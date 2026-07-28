@@ -100,7 +100,7 @@ public class SetTokenTest {
     var createCommand = new SetTokenCommand(
       oldData.id(),
       oldData.token(),
-      oldData.type(),
+      "accessToken",
       "DonateX",
       oldData.settings()
     );
@@ -108,7 +108,7 @@ public class SetTokenTest {
     var updateCommand = new SetTokenCommand(
       oldData.id(),
       command.token(),
-      command.type(),
+      "accessToken",
       "DonateX",
       command.settings()
     );
@@ -139,7 +139,7 @@ public class SetTokenTest {
           "System correct"
         );
         assertEquals(
-          oldData.type(),
+          "accessToken",
           tokens.getBody().get().get(0).type(),
           "Type correct"
         );
