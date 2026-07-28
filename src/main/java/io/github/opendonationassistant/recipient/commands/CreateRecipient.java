@@ -13,6 +13,7 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +30,10 @@ public class CreateRecipient {
   private final RealmResource realm;
 
   @Inject
-  public CreateRecipient(RabbitClient rabbit, RealmResource realm) {
+  public CreateRecipient(
+    @Named("commands") RabbitClient rabbit,
+    RealmResource realm
+  ) {
     this.rabbit = rabbit;
     this.realm = realm;
   }
