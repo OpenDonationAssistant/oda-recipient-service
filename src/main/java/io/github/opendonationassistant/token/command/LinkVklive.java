@@ -14,6 +14,8 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -27,7 +29,7 @@ public class LinkVklive extends BaseController {
   public LinkVklive(
     VKLiveClient vklive,
     VkliveTokenRepository repository,
-    RabbitClient rabbit
+    @Named("commands") RabbitClient rabbit
   ) {
     this.vklive = vklive;
     this.repository = repository;

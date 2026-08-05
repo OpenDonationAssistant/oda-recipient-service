@@ -14,4 +14,6 @@ public interface TokenDataRepository extends CrudRepository<TokenData, String> {
     String system,
     String type
   );
+
+  public List<TokenData> findBySystemAndDeletedFalse(String system);
 }

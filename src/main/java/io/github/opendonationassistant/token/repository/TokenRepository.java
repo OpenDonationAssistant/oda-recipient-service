@@ -56,6 +56,14 @@ public class TokenRepository {
       .toList();
   }
 
+  public List<Token> findBySystem(String system) {
+    return repository
+      .findBySystemAndDeletedFalse(system)
+      .stream()
+      .map(this::convert)
+      .toList();
+  }
+
   public CompletableFuture<Token> create(
     String token,
     String type,
