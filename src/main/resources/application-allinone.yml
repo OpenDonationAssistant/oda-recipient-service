@@ -27,6 +27,9 @@ streamlabs-auth.client.secret: secret
 goodgame-auth.redirect: https://widgets.oda.digital
 goodgame-auth.client.id: id
 goodgame-auth.client.secret: secret
+ihaq.redirect: https://widgets.oda.digital
+ihaq.client.id: id
+ihaq.client.secret: secret
 micronaut:
   http:
     services:
@@ -46,3 +49,5 @@ micronaut:
         url: https://api.streamelements.com
       streamelements-data:
         url: https://api.streamelements.com
+      ihaq:
+        url: https://ihaqdonate.com
