@@ -28,7 +28,7 @@ import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 @OpenAPIDefinition(
   info = @Info(
     title = "oda-recipient-service",
-    version = "0.1.0",
+    version = "0.13.0",
     license = @License(
       name = "AGPL-3.0",
       url = "https://www.gnu.org/licenses/agpl-3.0.en.html"
