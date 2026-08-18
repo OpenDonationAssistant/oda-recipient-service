@@ -9,9 +9,11 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -25,24 +27,28 @@ public class RefreshTokens extends BaseController {
   }
 
   @Post("/recipients/tokens/refresh")
-  public CompletableFuture<HttpResponse<List<RefreshedTokens>>> refresh(
+  @Secured(SecurityRule.IS_AUTHENTICATED)
+  public CompletableFuture<HttpResponse<Void>> refresh(
+    Authentication auth,
     @Body RefreshTokensCommand command
   ) {
-    return CompletableFuture.supplyAsync(() -> {
-      var refreshed = repository
+    if (!isAdmin(auth)) {
+      return CompletableFuture.completedFuture(HttpResponse.unauthorized());
+    }
+    return CompletableFuture.allOf(
+      repository
         .findBySystem(command.system())
         .stream()
         .map(this::refresh)
-        .toList();
-      return HttpResponse.ok(refreshed);
-    });
+        .toArray(CompletableFuture[]::new)
+    ).thenApply(it -> HttpResponse.ok());
   }
 
-  private RefreshedTokens refresh(Token token) {
+  private CompletableFuture<RefreshedTokens> refresh(Token token) {
     if (token instanceof RefreshToken refreshToken) {
-      return refreshToken.obtainAccessToken().join();
+      return refreshToken.obtainAccessToken();
     }
-    return new RefreshedTokens(token.data().token(), token.data().token());
+    return CompletableFuture.completedFuture(null);
   }
 
   @Serdeable
