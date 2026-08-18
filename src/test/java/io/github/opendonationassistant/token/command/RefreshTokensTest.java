@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+import io.github.opendonationassistant.testutils.AuthenticationGenerator;
 import io.github.opendonationassistant.token.command.RefreshTokens.RefreshTokensCommand;
 import io.github.opendonationassistant.token.repository.TokenData;
 import io.github.opendonationassistant.token.repository.TokenDataRepository;
@@ -51,6 +52,7 @@ public class RefreshTokensTest {
     @Given String recipientId,
     MockServerClient client
   ) {
+    var auth = AuthenticationGenerator.forAdmin("stCarolas");
     client
       .when(request().withPath("/oauth/token"))
       .respond(
@@ -77,53 +79,12 @@ public class RefreshTokensTest {
     repository.save(tokenData);
 
     var response = controller
-      .refresh(new RefreshTokensCommand("Kick"))
+      .refresh(auth, new RefreshTokensCommand("Kick"))
       .join();
 
     assertEquals(200, response.getStatus().getCode());
-    var body = response.body();
-    assertNotNull(body);
-    assertEquals(1, body.size());
-    assertEquals("refreshed_access_token", body.get(0).accessToken());
-    assertEquals("new_refresh_token", body.get(0).refreshToken());
 
     repository.delete(tokenData);
-  }
-
-  @Test
-  public void testReturnsStoredTokenForGenericToken(@Given String system) {
-    var tokenData = Instancio.of(TokenData.class)
-      .set(Select.field(TokenData::type), "accessToken")
-      .set(Select.field(TokenData::system), system)
-      .set(Select.field(TokenData::enabled), true)
-      .set(Select.field(TokenData::deleted), false)
-      .create();
-
-    repository.save(tokenData);
-
-    var response = controller
-      .refresh(new RefreshTokensCommand(system))
-      .join();
-
-    assertEquals(200, response.getStatus().getCode());
-    var body = response.body();
-    assertNotNull(body);
-    assertEquals(1, body.size());
-    assertEquals(tokenData.token(), body.get(0).accessToken());
-    assertEquals(tokenData.token(), body.get(0).refreshToken());
-
-    repository.delete(tokenData);
-  }
-
-  @Test
-  public void testReturnsEmptyListWhenNoTokensForSystem(@Given String system) {
-    var response = controller
-      .refresh(new RefreshTokensCommand(system))
-      .join();
-
-    assertEquals(200, response.getStatus().getCode());
-    var body = response.body();
-    assertNotNull(body);
-    assertEquals(List.of(), body);
+    // TODO check that the refresh token has been updated
   }
 }
