@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.token.repository.TokenDataRepository;
+import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -14,9 +15,9 @@ import io.micronaut.serde.annotation.Serdeable;
 @Controller
 public class ToggleToken extends BaseController {
 
-  private final TokenDataRepository repository;
+  private final TokenRepository repository;
 
-  public ToggleToken(TokenDataRepository repository) {
+  public ToggleToken(TokenRepository repository) {
     this.repository = repository;
   }
 
@@ -32,8 +33,8 @@ public class ToggleToken extends BaseController {
     }
     repository
       .findById(command.id())
-      .map(data -> data.withEnabled(command.enabled()))
-      .ifPresent(repository::update);
+      .filter(data -> data.data().recipientId().equals(owner.get()))
+      .ifPresent(token -> token.toggle());
     return HttpResponse.ok();
   }
 
