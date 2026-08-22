@@ -12,5 +12,15 @@ public record TokenSettingsChanged(
   String system,
   boolean enabled,
   boolean deleted,
-  Map<String, Object> settings
-) implements HasRecipientId {}
+  Map<String, Object> settings,
+  Event event
+)
+  implements HasRecipientId {
+  public static enum Event {
+    TOKEN_CREATED,
+    TOKEN_UPDATED,
+    SETTINGS_CHANGED,
+    TOKEN_TOGGLED,
+    TOKEN_DELETED,
+  }
+}

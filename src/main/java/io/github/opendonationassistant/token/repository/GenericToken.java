@@ -3,6 +3,7 @@ package io.github.opendonationassistant.token.repository;
 import io.github.opendonationassistant.commons.logging.ODALogger;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.github.opendonationassistant.token.events.TokenSettingsChanged;
+import io.github.opendonationassistant.token.events.TokenSettingsChanged.Event;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,21 +35,6 @@ public class GenericToken implements Token {
 
   @Override
   public void save() {
-    try {
-      events.sendEvent(
-        new TokenSettingsChanged(
-          data.id(),
-          data.type(),
-          data.recipientId(),
-          data.system(),
-          data.enabled(),
-          data.deleted(),
-          data.settings()
-        )
-      );
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
     log.info(
       "Saving token",
       Map.of(
@@ -64,12 +50,44 @@ public class GenericToken implements Token {
       this.repository.update(data);
     } else {
       this.repository.insert(data);
+      try {
+        events.sendEvent(
+          new TokenSettingsChanged(
+            data.id(),
+            data.type(),
+            data.recipientId(),
+            data.system(),
+            data.enabled(),
+            data.deleted(),
+            data.settings(),
+            Event.TOKEN_UPDATED
+          )
+        );
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
   public void update(String token) {
     this.data = this.data.withToken(token);
     save();
+    try {
+      events.sendEvent(
+        new TokenSettingsChanged(
+          data.id(),
+          data.type(),
+          data.recipientId(),
+          data.system(),
+          data.enabled(),
+          data.deleted(),
+          data.settings(),
+          Event.TOKEN_UPDATED
+        )
+      );
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void update(Map<String, Object> settings) {
@@ -77,18 +95,66 @@ public class GenericToken implements Token {
     updated.putAll(settings);
     this.data = this.data.withSettings(updated);
     save();
+    try {
+      events.sendEvent(
+        new TokenSettingsChanged(
+          data.id(),
+          data.type(),
+          data.recipientId(),
+          data.system(),
+          data.enabled(),
+          data.deleted(),
+          data.settings(),
+          Event.SETTINGS_CHANGED
+        )
+      );
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public void toggle() {
     this.data = this.data.withEnabled(!data.enabled());
     save();
+    try {
+      events.sendEvent(
+        new TokenSettingsChanged(
+          data.id(),
+          data.type(),
+          data.recipientId(),
+          data.system(),
+          data.enabled(),
+          data.deleted(),
+          data.settings(),
+          Event.TOKEN_TOGGLED
+        )
+      );
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public CompletableFuture<Void> delete() {
     this.data = this.data.withDeleted(true);
     save();
+    try {
+      events.sendEvent(
+        new TokenSettingsChanged(
+          data.id(),
+          data.type(),
+          data.recipientId(),
+          data.system(),
+          data.enabled(),
+          data.deleted(),
+          data.settings(),
+          Event.TOKEN_DELETED
+        )
+      );
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     return CompletableFuture.completedFuture(null);
   }
 
