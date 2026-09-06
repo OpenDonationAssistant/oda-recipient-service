@@ -20,6 +20,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import org.instancio.Instancio;
 import org.instancio.Select;
@@ -140,7 +141,8 @@ public class DeleteTokenTest {
       "Kick",
       false,
       false,
-      template.settings()
+      template.settings(),
+      List.of()
     );
 
     repository.save(token);

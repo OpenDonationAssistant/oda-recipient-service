@@ -25,7 +25,7 @@ public class TokenController extends BaseController {
 
   @Get("/recipients/tokens")
   @Secured(SecurityRule.IS_AUTHENTICATED)
-  public HttpResponse<List<TokenDto>> listTokens(Authentication auth) {
+  public HttpResponse<List<TokenInfoDto>> listTokens(Authentication auth) {
     var owner = getOwnerId(auth);
     if (owner.isEmpty()) {
       return HttpResponse.unauthorized();
@@ -40,24 +40,24 @@ public class TokenController extends BaseController {
     );
   }
 
-  private TokenDto convert(TokenData data) {
-    return new TokenDto(
+  private TokenInfoDto convert(TokenData data) {
+    return new TokenInfoDto(
       data.id(),
       data.system(),
       data.type(),
-      data.token(),
       data.enabled(),
-      data.settings()
+      data.settings(),
+      data.scopes()
     );
   }
 
   @Serdeable
-  public static record TokenDto(
+  public static record TokenInfoDto(
     String id,
     String system,
     String type,
-    String token,
     Boolean enabled,
-    Map<String, Object> settings
+    Map<String, Object> settings,
+    List<String> scopes
   ) {}
 }

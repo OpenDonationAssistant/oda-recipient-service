@@ -64,11 +64,6 @@ public class SetTokenTest {
           "Token id correct"
         );
         assertEquals(
-          token,
-          tokens.getBody().get().get(0).token(),
-          "Token itself correct"
-        );
-        assertEquals(
           "DonateX",
           tokens.getBody().get().get(0).system(),
           "System correct"
@@ -127,11 +122,6 @@ public class SetTokenTest {
           1,
           tokens.getBody().get().size(),
           "New token was not created"
-        );
-        assertEquals(
-          oldData.token(),
-          tokens.getBody().get().get(0).token(),
-          "Token correct"
         );
         assertEquals(
           "DonateX",

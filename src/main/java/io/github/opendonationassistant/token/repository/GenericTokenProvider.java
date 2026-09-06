@@ -2,6 +2,7 @@ package io.github.opendonationassistant.token.repository;
 
 import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.JsonConvertable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +42,8 @@ public abstract class GenericTokenProvider<
       system(),
       true,
       false,
-      settings
+      settings,
+      List.of()
     );
     var created = convert(data);
     created.save();
