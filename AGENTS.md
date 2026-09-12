@@ -1,38 +1,97 @@
-# AGENTS.md
+# PROJECT KNOWLEDGE BASE
 
-Micronaut service (part of the OpenDonationAssistant platform). Single Maven module, **Java 25**, Micronaut platform `5.1.0` (injection `4.5.0`). Entry point: `io.github.opendonationassistant.Application`.
+**Generated:** 2026-09-12T07:03:49Z
+**Commit:** 209fe29
+**Branch:** master
 
-## Build & run
+## OVERVIEW
 
-- No Maven wrapper is committed; use system `mvn` (requires JDK 25).
-- Compile: `mvn compile` · Test all: `mvn test` · Single test: `mvn test -Dtest=FooTest`
-- Run locally: `mvn mn:run`. The app defaults to the `allinone` environment (set in `Application.Configurer`), so it starts with in-memory caches and all HTTP clients pointed at `localhost:8080`. Running a real instance needs `JDBC_URL`, `RABBITMQ_HOST`, `INFINISPAN_HOST/PORT/USER/PASSWORD`, `JWKS_URI` (see `.vscode/tasks.json` for the dev recipe: `MICRONAUT_SERVER_PORT=8084 CLIENT_ID=... CLIENT_SECRET=... mvn mn:run`).
+Micronaut microservice (part of the OpenDonationAssistant platform) managing stream-donation recipients: OAuth token storage/refresh for ~15 donation platforms, recipient settings, and daily contribution awards. Single Maven module, **Java 25**, Micronaut platform `5.1.0`. Entry point: `io.github.opendonationassistant.Application`. Version `0.14.0`.
 
-## Compile gate — NullAway is an ERROR (do not miss)
+## STRUCTURE
 
-`maven-compiler-plugin` runs **Error Prone + NullAway in JSpecify mode**, failing the build on null-unsafety for `io.github.opendonationassistant.*`. Write null-safe code and use `@Nullable`/`@NonNull` (JSpecify or `io.micronaut.core.annotation`). Generated sources under `target/generated-sources` are excluded. Required JVM `--add-exports` for the compiler live in `.mvn/jvm.config` — do not remove them.
+```
+oda-recipient-service/
+├── src/main/java/io/github/opendonationassistant/
+│   ├── Application.java        # main() + @Factory: Rabbit topology, Infinispan, RabbitClient facades
+│   ├── token/                  # OAuth token subsystem (largest, 56 files) → see token/AGENTS.md
+│   │   └── repository/         # 15 platform Token+Repository pairs → see token/repository/AGENTS.md
+│   ├── recipient/              # recipient settings + daily contributions → see recipient/AGENTS.md
+│   ├── otp/command/            # OTP exchange flow (unauthenticated — TODO)
+│   ├── integration/            # one HTTP client per external platform (twitch, kick, ...)
+│   └── info/                   # service info endpoint
+├── src/main/resources/
+│   ├── application*.yml        # base + allinone (dev) + standalone (prod) profiles
+│   ├── logback.xml             # JSON structured logging
+│   └── db/migration/V1..V11    # Flyway migrations, schema `recipient`
+├── src/test/java/              # JUnit5 tests mirroring main packages
+├── pom.xml                     # version 0.14.0, dynamic ${packaging} (jar default)
+├── Dockerfile                  # eclipse-temurin:25
+├── aot-jar.properties          # Micronaut AOT (disabled in pom)
+└── openapi-config.json         # npm client codegen (@opendonationassistant/oda-recipient-service-client)
+```
 
-Annotation processors active at compile: `micronaut-inject`, `micronaut-security-annotations`, `micronaut-serde-processor`, `micronaut-data-processor`, `micronaut-openapi`. The OpenAPI spec is generated to `target/classes/META-INF/swagger/service-*.yml` during compilation (the npm client from `openapi-config.json` is produced by the shared CI, not here).
+## WHERE TO LOOK
 
-## Tests
+| Task | Location |
+|------|----------|
+| Add a new platform token | `token/repository/` (see its AGENTS.md checklist) |
+| Add an OAuth link endpoint | `token/command/Link{Platform}.java` template |
+| RabbitMQ topology / named clients | `Application.rabbitConfiguration()` |
+| Add a cache | `*CacheConfiguration` `@Factory` (see `OtpCacheConfiguration`) |
+| DB schema change | `src/main/resources/db/migration/V{n}__*.sql` |
+| Contribution/payment logic | `recipient/donater/` |
+| Auth helpers | `BaseController.getOwnerId/isAdmin` from `oda-commons` |
 
-- `@MicronautTest(environments = "allinone")` tests boot **Micronaut Test Resources + Testcontainers**, so they **require a running Docker/Podman** and pull `postgres:18.3`, `rabbitmq:4.3.0`, and `keycloak:26.6.1`. Each such test is slow (~30–40s) because containers spin up per suite. Expect the whole suite to take several minutes.
-- Pure unit tests (no `@MicronautTest`, e.g. `SettingsTest`) run instantly without infra — prefer them when possible.
-- HTTP-client tests use MockServer on port `8080` (matches `allinone` URLs) + Instancio (`@Given`/`@WithSettings`) for fixtures.
-- Flyway migrations run against the test Postgres; new schema changes need a new `V{n}__*.sql` in `src/main/resources/db/migration/` (current files go up to `V10`). `baseline-on-migrate=true`, validation disabled.
+## CODE MAP
 
-## Architecture / conventions
+| Symbol | Type | Location | Role |
+|--------|------|----------|------|
+| `Application` | class/@Factory | root | entry point, Rabbit topology, Infinispan, `@Named("commands"/"events")` RabbitClient |
+| `TokenRepository` | @Singleton | token/repository | facade over `TokenDataRepository`, dispatches to `TokenProvider` by `system()` |
+| `TokenDataRepository` | @JdbcRepository | token/repository | Postgres CRUD for `token` table |
+| `GenericTokenProvider` | abstract | token/repository | base for all 15 platform repositories |
+| `TokenRequestHandler` | @RabbitListener | token/listener/handlers | RPC on `recipient.token-request` → `TokenResponse` |
+| `ContributionListener` | @RabbitListener | recipient/donater | consumes `HistoryItemEvent`, upserts contributions |
+| `SettingsController` | @Controller | recipient/view | recipient settings CRUD |
+| `OtpCommandController` | @Controller | otp/command | `/otp/create`, `/otp/exchange` (IS_ANONYMOUS) |
+| `KeycloakConfiguration` | @Factory | root | Keycloak admin `RealmResource` bean |
 
-- **Persistence**: PostgreSQL via `micronaut-data-jdbc` (`@JdbcRepository(dialect = Dialect.POSTGRES)`, schema `recipient`). Infinispan Hot Rod for some caches — real in `standalone` env, swapped for in-memory `HashMap` in `allinone` (see `DonatersCacheConfiguration`, `OtpCacheConfiguration`, `Application.remoteCacheManager`).
-- **Messaging**: RabbitMQ (`micronaut-rabbitmq`) for events / commands / RPC; queues and exchanges are declared in `Application.rabbitConfiguration()`. The rabbit consumer executor is a single fixed thread (`micronaut.executors.rabbit`).
-- **Auth**: Keycloak admin client + JWT (JWKS from `JWKS_URI`). Controllers use `@Secured`; `BaseController` (from `oda-commons`) exposes `getOwnerId(Authentication)`.
-- **Layout** (CQRS-style, under `io.github.opendonationassistant`): `token/` (commands, repository, view, listener, events), `recipient/` (commands, donater, repository, view), `otp/command`, `info`, and `integration/*` = one HTTP client per external platform (twitch, kick, vklive, goodgame, discord, streamelements, streamlabs, donatepay, donationalerts, ihaq).
-- Records + `@Serdeable` for DTOs; serde inclusion is `ALWAYS`. Code is formatted in google-java-format style (2-space indent).
+## CONVENTIONS
 
-## Shared ODA libraries
+- **Compile gate**: Error Prone + **NullAway in JSpecify mode = ERROR** on `io.github.opendonationassistant.*`. Null-unsafe code fails the build. Use `Optional`, `@Nullable`/`@NonNull`. `.mvn/jvm.config` `--add-exports` are required — never remove.
+- **Layout**: CQRS-style feature packages — `command/` (HTTP command controllers), `view/` (read controllers), `repository/`, `listener/`, `events/`.
+- **Controllers**: extend `BaseController` (oda-commons), `@Secured(IS_AUTHENTICATED)`, derive owner from JWT via `getOwnerId(auth)` — **never trust path `{recipientId}`**. Empty owner → `HttpResponse.unauthorized()`.
+- **DTOs**: records + `@Serdeable` everywhere (HTTP, Rabbit, JSONB columns). Serde inclusion `ALWAYS`. google-java-format style, 2-space indent.
+- **Persistence**: `@JdbcRepository(dialect = POSTGRES)`, schema `recipient`, soft-delete via `deleted` boolean, JSONB via `@MappedProperty(type = DataType.JSON)`. IDs from `Generators.timeBasedEpochGenerator()`.
+- **Messaging**: commands → `@Named("commands")` RabbitClient (exchange `commands`); events → `@Named("events")` RabbitClient (exchange `recipient`, payloads implement `HasRecipientId`). Consumers → `@RabbitListener` + `@Queue`. Reusable payloads live in `oda-rabbit-conf`; local ones are nested `@Serdeable` records.
+- **Caches**: `@Factory` producing a `Map<K,V>` bean with two `@Requires(env=...)` methods — `standalone` → Infinispan HotRod, `allinone` → `HashMap`. Non-String values use `SerdeableEntryMarshaller`.
+- **Logging**: `ODALogger` (`new ODALogger(this)`), never slf4j directly.
+- **Async**: commands return `CompletableFuture`, chained with `thenApply/thenCompose`, aggregated with `allOf`, blocked at RPC boundary with `.join()`.
+- **Shared libs**: `oda-commons`, `oda-rabbit-conf`, `oda-test-utils` pinned by `${oda.version}` (0.11.232). Check those artifacts before writing new infra.
 
-`oda-commons`, `oda-rabbit-conf`, `oda-test-utils` (and the `BaseController`, `RabbitClient`, `ODALogger` used throughout) come from `io.github.opendonationassistant`, pinned by the `${oda.version}` property (currently `0.11.232`). If a needed API isn't in this repo, check those artifacts first.
+## ANTI-PATTERNS (THIS PROJECT)
 
-## Release
+- **No ownership check on token ops** — `DeleteToken` deletes by ID without recipient filter (flagged in TEST-REPORT.md). Always filter by `getOwnerId(auth)`.
+- **Unauthenticated endpoints** — `OtpCommandController` is `IS_ANONYMOUS` (TODO: add auth). Don't add new anonymous endpoints.
+- **`Settings.setFeatureStatus()`** — filter-remove + add can create duplicate features; check existence before adding.
+- **Mocking `Authentication` in tests without exercising real security rules** — flagged coverage gap.
+- **Never commit**: `target/`, `.micronaut/`, `.settings/`, `.classpath`, `.factorypath`, `local.sh`, `private.key`, `public.pub`. (`.vscode/tasks.json` currently leaks a CLIENT_SECRET — do not add more secrets to tracked files.)
 
-Push to `master` triggers a shared CI workflow (`OpenDonationAssistant/oda-libraries` `release_service.yml`) that builds and publishes to GHCR. Bump the `<version>` in `pom.xml` (currently `0.13.0`) for a release — version bumps are standalone commits.
+## COMMANDS
+
+```bash
+mvn compile                          # compile (NullAway gate)
+mvn test                             # all tests (needs Docker/Podman for @MicronautTest)
+mvn test -Dtest=FooTest              # single test
+mvn mn:run                           # run locally (defaults to allinone env)
+mvn clean package -Dpackaging=jar    # build jar
+```
+
+## NOTES
+
+- `@MicronautTest(environments = "allinone")` boots Testcontainers (postgres:18.3, rabbitmq:4.3.0, keycloak:26.6.1) — requires Docker/Podman, ~30-40s per suite. Prefer pure unit tests.
+- HTTP-client tests use MockServer on port 8080 (matches `allinone` URLs) + Instancio (`@Given`/`@WithSettings`).
+- Flyway: `baseline-on-migrate=true`, validation disabled. New schema → new `V{n}__*.sql`.
+- Release: push to `master` → shared `oda-libraries` workflow → GHCR image + git tag (tag = CI run number, not pom version). Bump `<version>` in pom as standalone commit.
+- `TEST-REPORT.md` at root is a generated coverage-gap report (slightly stale — token tests have grown since).
