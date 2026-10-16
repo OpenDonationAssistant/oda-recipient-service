@@ -18,5 +18,6 @@ public record WebhookChangedEvent(
   public static enum Event {
     WEBHOOK_CREATED,
     WEBHOOK_UPDATED,
+    WEBHOOK_DELETED,
   }
 }

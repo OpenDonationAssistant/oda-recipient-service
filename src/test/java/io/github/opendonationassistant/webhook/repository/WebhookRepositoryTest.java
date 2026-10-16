@@ -12,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 
 /**
  * Pure Mockito unit tests for {@link WebhookRepository}. Verifies persistence side effects and the
- * RabbitMQ events emitted on create/update.
+ * RabbitMQ events emitted on create/update/delete.
  */
 public class WebhookRepositoryTest {
 
@@ -102,6 +102,39 @@ public class WebhookRepositoryTest {
 
     // Update must not insert a new row.
     verify(dataRepository, never()).save(any(Webhook.class));
+  }
+
+  @Test
+  public void testDeleteRemovesWebhookAndEmitsDeletedEvent()
+    throws IOException {
+    // Arrange
+    var repository = repositoryWithMocks();
+    var webhook = new Webhook(
+      "webhookId",
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      true
+    );
+
+    // Act
+    repository.delete(webhook);
+
+    // Assert - persistence
+    verify(dataRepository).deleteById("webhookId");
+    verify(dataRepository, never()).save(any(Webhook.class));
+    verify(dataRepository, never()).update(any(Webhook.class));
+
+    // Assert - event
+    var eventCaptor = ArgumentCaptor.forClass(WebhookChangedEvent.class);
+    verify(events).sendEvent(eventCaptor.capture());
+    var event = eventCaptor.getValue();
+    assertEquals(Event.WEBHOOK_DELETED, event.event());
+    assertEquals("webhookId", event.id());
+    assertEquals("recipientId", event.recipientId());
+    assertEquals("https://example.com/hook", event.url());
+    assertEquals(Webhook.Type.DISCORD, event.type());
+    assertTrue(event.enabled());
   }
 
   @Test

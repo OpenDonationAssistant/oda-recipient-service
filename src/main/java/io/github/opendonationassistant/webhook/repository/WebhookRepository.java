@@ -58,6 +58,11 @@ public class WebhookRepository {
     return webhook;
   }
 
+  public void delete(Webhook webhook) {
+    repository.deleteById(webhook.id());
+    sendEvent(webhook, Event.WEBHOOK_DELETED);
+  }
+
   public Optional<Webhook> findById(String id) {
     return repository.findById(id);
   }
