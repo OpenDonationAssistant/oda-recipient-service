@@ -8,7 +8,8 @@ import jakarta.inject.Singleton;
 @Singleton
 public class StreamElementsJWTTokenRepository
   extends GenericTokenProvider<
-    StreamElementsJWTToken, StreamElementsToken.Settings
+    StreamElementsJWTToken,
+    StreamElementsToken.Settings
   > {
 
   private final RabbitClient events;
