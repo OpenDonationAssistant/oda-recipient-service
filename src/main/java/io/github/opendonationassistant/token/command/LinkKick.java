@@ -14,6 +14,8 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +30,7 @@ public class LinkKick extends BaseController {
   public LinkKick(
     KickClient client,
     KickTokenRepository tokenRepository,
-    RabbitClient rabbit
+    @Named("commands") RabbitClient rabbit
   ) {
     this.client = client;
     this.tokenRepository = tokenRepository;
