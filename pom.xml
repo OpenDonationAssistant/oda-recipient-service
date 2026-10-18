@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.stcarolas.oda</groupId>
   <artifactId>oda-recipient-service</artifactId>
-  <version>0.15.0</version>
+  <version>0.17.0</version>
   <packaging>${packaging}</packaging>
 
   <parent>
@@ -77,6 +77,10 @@
     <dependency>
       <groupId>io.micronaut.rabbitmq</groupId>
       <artifactId>micronaut-rabbitmq</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.micronaut.validation</groupId>
+      <artifactId>micronaut-validation</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.uuid</groupId>

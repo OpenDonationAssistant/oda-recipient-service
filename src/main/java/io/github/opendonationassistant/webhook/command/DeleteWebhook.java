@@ -11,6 +11,8 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -27,7 +29,7 @@ public class DeleteWebhook extends BaseController {
   @Post("/webhooks/commands/delete-webhook")
   public CompletableFuture<HttpResponse<Void>> deleteWebhook(
     Authentication auth,
-    @Body DeleteWebhookCommand command
+    @Valid @Body DeleteWebhookCommand command
   ) {
     var ownerId = getOwnerId(auth);
     if (ownerId.isEmpty()) {
@@ -39,13 +41,14 @@ public class DeleteWebhook extends BaseController {
         existing.isEmpty() ||
         !existing.get().recipientId().equals(ownerId.get())
       ) {
-        return HttpResponse.<Void>notFound();
+        return HttpResponse.<Void>unauthorized();
       }
-      repository.delete(existing.get());
-      return HttpResponse.<Void>ok();
+      return repository.delete(existing.get())
+        ? HttpResponse.<Void>ok()
+        : HttpResponse.<Void>unauthorized();
     });
   }
 
   @Serdeable
-  public record DeleteWebhookCommand(String id) {}
+  public record DeleteWebhookCommand(@NotBlank String id) {}
 }

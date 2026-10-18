@@ -7,14 +7,20 @@ import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.github.opendonationassistant.webhook.events.WebhookChangedEvent;
 import io.github.opendonationassistant.webhook.events.WebhookChangedEvent.Event;
 import java.io.IOException;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 /**
- * Pure Mockito unit tests for {@link WebhookRepository}. Verifies persistence side effects and the
- * RabbitMQ events emitted on create/update/delete.
+ * Pure Mockito unit tests for {@link WebhookRepository}. Verifies persistence side effects, the
+ * owner-scoped soft-delete/update guards, and the RabbitMQ events emitted on create/update/delete.
  */
 public class WebhookRepositoryTest {
+
+  private static final Map<String, Object> SETTINGS = Map.of(
+    "channel",
+    "general"
+  );
 
   WebhookDataRepository dataRepository = mock(WebhookDataRepository.class);
   RabbitClient events = mock(RabbitClient.class);
@@ -33,6 +39,7 @@ public class WebhookRepositoryTest {
       "recipientId",
       "https://example.com/hook",
       Webhook.Type.DISCORD,
+      SETTINGS,
       true
     );
 
@@ -42,7 +49,9 @@ public class WebhookRepositoryTest {
     assertEquals("recipientId", savedWebhook.getValue().recipientId());
     assertEquals("https://example.com/hook", savedWebhook.getValue().url());
     assertEquals(Webhook.Type.DISCORD, savedWebhook.getValue().type());
+    assertEquals(SETTINGS, savedWebhook.getValue().settings());
     assertTrue(savedWebhook.getValue().enabled());
+    assertFalse(savedWebhook.getValue().deleted(), "new webhook must be active");
     assertFalse(
       savedWebhook.getValue().id().isEmpty(),
       "generated id must not be empty"
@@ -56,9 +65,9 @@ public class WebhookRepositoryTest {
     assertEquals("recipientId", event.recipientId());
     assertEquals("https://example.com/hook", event.url());
     assertEquals(Webhook.Type.DISCORD, event.type());
+    assertEquals(SETTINGS, event.settings());
     assertTrue(event.enabled());
     assertEquals(created.id(), event.id());
-    assertFalse(event.id().isEmpty(), "generated id must not be empty");
   }
 
   @Test
@@ -66,27 +75,31 @@ public class WebhookRepositoryTest {
     throws IOException {
     // Arrange
     var repository = repositoryWithMocks();
-
-    // Act
-    var updated = repository.update(
+    var webhook = new Webhook(
       "webhookId",
       "recipientId",
       "https://example.com/updated",
       Webhook.Type.TELEGRAM,
+      Map.of("chatId", "12345"),
+      false,
       false
     );
+    when(
+      dataRepository.existsByIdAndRecipientIdAndDeletedFalse(
+        "webhookId",
+        "recipientId"
+      )
+    ).thenReturn(true);
+
+    // Act
+    var result = repository.update(webhook);
 
     // Assert - persistence
+    assertTrue(result.isPresent());
     var updatedWebhook = ArgumentCaptor.forClass(Webhook.class);
     verify(dataRepository).update(updatedWebhook.capture());
-    assertEquals("webhookId", updatedWebhook.getValue().id());
-    assertEquals("recipientId", updatedWebhook.getValue().recipientId());
-    assertEquals(
-      "https://example.com/updated",
-      updatedWebhook.getValue().url()
-    );
-    assertEquals(Webhook.Type.TELEGRAM, updatedWebhook.getValue().type());
-    assertFalse(updatedWebhook.getValue().enabled());
+    assertEquals(webhook, updatedWebhook.getValue());
+    verify(dataRepository, never()).save(any(Webhook.class));
 
     // Assert - event
     var eventCaptor = ArgumentCaptor.forClass(WebhookChangedEvent.class);
@@ -94,18 +107,13 @@ public class WebhookRepositoryTest {
     var event = eventCaptor.getValue();
     assertEquals(Event.WEBHOOK_UPDATED, event.event());
     assertEquals("webhookId", event.id());
-    assertEquals("recipientId", event.recipientId());
-    assertEquals("https://example.com/updated", event.url());
     assertEquals(Webhook.Type.TELEGRAM, event.type());
+    assertEquals(Map.of("chatId", "12345"), event.settings());
     assertFalse(event.enabled());
-    assertEquals(updated.id(), event.id());
-
-    // Update must not insert a new row.
-    verify(dataRepository, never()).save(any(Webhook.class));
   }
 
   @Test
-  public void testDeleteRemovesWebhookAndEmitsDeletedEvent()
+  public void testUpdateReturnsEmptyAndEmitsNoEventWhenNotOwnedOrDeleted()
     throws IOException {
     // Arrange
     var repository = repositoryWithMocks();
@@ -114,16 +122,55 @@ public class WebhookRepositoryTest {
       "recipientId",
       "https://example.com/hook",
       Webhook.Type.DISCORD,
-      true
+      SETTINGS,
+      true,
+      false
     );
+    when(
+      dataRepository.existsByIdAndRecipientIdAndDeletedFalse(
+        "webhookId",
+        "recipientId"
+      )
+    ).thenReturn(false);
 
     // Act
-    repository.delete(webhook);
+    var result = repository.update(webhook);
 
-    // Assert - persistence
-    verify(dataRepository).deleteById("webhookId");
-    verify(dataRepository, never()).save(any(Webhook.class));
+    // Assert
+    assertTrue(result.isEmpty());
     verify(dataRepository, never()).update(any(Webhook.class));
+    verify(events, never()).sendEvent(any());
+  }
+
+  @Test
+  public void testDeleteSoftDeletesAndEmitsDeletedEvent() throws IOException {
+    // Arrange
+    var repository = repositoryWithMocks();
+    var webhook = new Webhook(
+      "webhookId",
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      SETTINGS,
+      true,
+      false
+    );
+    when(
+      dataRepository.existsByIdAndRecipientIdAndDeletedFalse(
+        "webhookId",
+        "recipientId"
+      )
+    ).thenReturn(true);
+
+    // Act
+    var deleted = repository.delete(webhook);
+
+    // Assert - soft delete, not a physical delete
+    assertTrue(deleted);
+    var updated = ArgumentCaptor.forClass(Webhook.class);
+    verify(dataRepository).update(updated.capture());
+    assertTrue(updated.getValue().deleted(), "row must be soft-deleted");
+    verify(dataRepository, never()).deleteById(anyString());
 
     // Assert - event
     var eventCaptor = ArgumentCaptor.forClass(WebhookChangedEvent.class);
@@ -132,9 +179,49 @@ public class WebhookRepositoryTest {
     assertEquals(Event.WEBHOOK_DELETED, event.event());
     assertEquals("webhookId", event.id());
     assertEquals("recipientId", event.recipientId());
-    assertEquals("https://example.com/hook", event.url());
-    assertEquals(Webhook.Type.DISCORD, event.type());
-    assertTrue(event.enabled());
+  }
+
+  @Test
+  public void testDeleteReturnsFalseAndEmitsNoEventWhenNotOwnedOrDeleted()
+    throws IOException {
+    // Arrange
+    var repository = repositoryWithMocks();
+    var webhook = new Webhook(
+      "webhookId",
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      SETTINGS,
+      true,
+      false
+    );
+    when(
+      dataRepository.existsByIdAndRecipientIdAndDeletedFalse(
+        "webhookId",
+        "recipientId"
+      )
+    ).thenReturn(false);
+
+    // Act
+    var deleted = repository.delete(webhook);
+
+    // Assert
+    assertFalse(deleted);
+    verify(dataRepository, never()).update(any(Webhook.class));
+    verify(events, never()).sendEvent(any());
+  }
+
+  @Test
+  public void testFindByIdReturnsEmptyForMalformedId() {
+    // Arrange
+    var repository = repositoryWithMocks();
+
+    // Act - a non-UUID id must not reach the uuid column binder
+    var result = repository.findById("not-a-uuid");
+
+    // Assert
+    assertTrue(result.isEmpty());
+    verify(dataRepository, never()).findByIdAndDeletedFalse(anyString());
   }
 
   @Test
@@ -152,6 +239,7 @@ public class WebhookRepositoryTest {
         "recipientId",
         "https://example.com/hook",
         Webhook.Type.DISCORD,
+        SETTINGS,
         true
       )
     );

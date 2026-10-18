@@ -1,15 +1,17 @@
 package io.github.opendonationassistant.webhook.events;
 
 import io.github.opendonationassistant.events.HasRecipientId;
-import io.github.opendonationassistant.webhook.repository.Webhook.Type;
+import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.micronaut.serde.annotation.Serdeable;
+import java.util.Map;
 
 @Serdeable
 public record WebhookChangedEvent(
   String id,
   String recipientId,
   String url,
-  Type type,
+  Webhook.Type type,
+  Map<String, Object> settings,
   boolean enabled,
   Event event
 )

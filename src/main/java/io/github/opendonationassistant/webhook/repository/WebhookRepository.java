@@ -4,13 +4,14 @@ import com.fasterxml.uuid.Generators;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.github.opendonationassistant.webhook.events.WebhookChangedEvent;
 import io.github.opendonationassistant.webhook.events.WebhookChangedEvent.Event;
-import io.github.opendonationassistant.webhook.repository.Webhook.Type;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Singleton
 public class WebhookRepository {
@@ -30,7 +31,8 @@ public class WebhookRepository {
   public Webhook create(
     String recipientId,
     String url,
-    Type type,
+    Webhook.Type type,
+    Map<String, Object> settings,
     boolean enabled
   ) {
     var webhook = new Webhook(
@@ -38,37 +40,69 @@ public class WebhookRepository {
       recipientId,
       url,
       type,
-      enabled
+      settings,
+      enabled,
+      false
     );
     repository.save(webhook);
     sendEvent(webhook, Event.WEBHOOK_CREATED);
     return webhook;
   }
 
-  public Webhook update(
-    String id,
-    String recipientId,
-    String url,
-    Type type,
-    boolean enabled
-  ) {
-    var webhook = new Webhook(id, recipientId, url, type, enabled);
+  public Optional<Webhook> update(Webhook webhook) {
+    if (
+      !repository.existsByIdAndRecipientIdAndDeletedFalse(
+        webhook.id(),
+        webhook.recipientId()
+      )
+    ) {
+      return Optional.empty();
+    }
     repository.update(webhook);
     sendEvent(webhook, Event.WEBHOOK_UPDATED);
-    return webhook;
+    return Optional.of(webhook);
   }
 
-  public void delete(Webhook webhook) {
-    repository.deleteById(webhook.id());
-    sendEvent(webhook, Event.WEBHOOK_DELETED);
+  /**
+   * Soft-deletes an active webhook owned by the recipient. Returns false (and emits no event) when
+   * there is nothing to delete.
+   */
+  public boolean delete(Webhook webhook) {
+    if (
+      !repository.existsByIdAndRecipientIdAndDeletedFalse(
+        webhook.id(),
+        webhook.recipientId()
+      )
+    ) {
+      return false;
+    }
+    var deleted = webhook.withDeleted(true);
+    repository.update(deleted);
+    sendEvent(deleted, Event.WEBHOOK_DELETED);
+    return true;
   }
 
   public Optional<Webhook> findById(String id) {
-    return repository.findById(id);
+    if (!isUuid(id)) {
+      return Optional.empty();
+    }
+    return repository.findByIdAndDeletedFalse(id);
   }
 
   public List<Webhook> findByRecipientId(String recipientId) {
-    return repository.findByRecipientId(recipientId);
+    return repository.findByRecipientIdAndDeletedFalse(recipientId);
+  }
+
+  private static boolean isUuid(String id) {
+    if (id == null) {
+      return false;
+    }
+    try {
+      UUID.fromString(id);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   private void sendEvent(Webhook webhook, Event event) {
@@ -79,6 +113,7 @@ public class WebhookRepository {
           webhook.recipientId(),
           webhook.url(),
           webhook.type(),
+          webhook.settings(),
           webhook.enabled(),
           event
         )

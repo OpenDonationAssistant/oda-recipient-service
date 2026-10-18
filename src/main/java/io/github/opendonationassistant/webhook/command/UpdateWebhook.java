@@ -1,7 +1,7 @@
 package io.github.opendonationassistant.webhook.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.webhook.repository.Webhook.Type;
+import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -11,7 +11,13 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -28,7 +34,7 @@ public class UpdateWebhook extends BaseController {
   @Post("/webhooks/commands/update-webhook")
   public CompletableFuture<HttpResponse<WebhookDto>> updateWebhook(
     Authentication auth,
-    @Body UpdateWebhookCommand command
+    @Valid @Body UpdateWebhookCommand command
   ) {
     var ownerId = getOwnerId(auth);
     if (ownerId.isEmpty()) {
@@ -40,33 +46,45 @@ public class UpdateWebhook extends BaseController {
         existing.isEmpty() ||
         !existing.get().recipientId().equals(ownerId.get())
       ) {
-        return HttpResponse.<WebhookDto>notFound();
+        return HttpResponse.<WebhookDto>unauthorized();
       }
-      var webhook = repository.update(
-        command.id(),
-        ownerId.get(),
-        command.url(),
-        command.type(),
-        command.enabled()
+      var current = existing.get();
+      var merged = new Webhook(
+        current.id(),
+        current.recipientId(),
+        Optional.ofNullable(command.url()).orElse(current.url()),
+        Optional.ofNullable(command.type()).orElse(current.type()),
+        Optional.ofNullable(command.settings()).orElse(current.settings()),
+        Optional.ofNullable(command.enabled()).orElse(current.enabled()),
+        current.deleted()
       );
-      return HttpResponse.ok(
-        new WebhookDto(
-          webhook.id(),
-          webhook.recipientId(),
-          webhook.url(),
-          webhook.type(),
-          webhook.enabled()
-        )
-      );
+      return repository
+        .update(merged)
+        .map(this::asDto)
+        .orElseGet(() -> HttpResponse.<WebhookDto>unauthorized());
     });
+  }
+
+  private HttpResponse<WebhookDto> asDto(Webhook webhook) {
+    return HttpResponse.ok(
+      new WebhookDto(
+        webhook.id(),
+        webhook.recipientId(),
+        webhook.url(),
+        webhook.type(),
+        webhook.settings(),
+        webhook.enabled()
+      )
+    );
   }
 
   @Serdeable
   public record UpdateWebhookCommand(
-    String id,
-    String url,
-    Type type,
-    boolean enabled
+    @NotBlank String id,
+    @Pattern(regexp = ".*\\S.*") @Nullable String url,
+    @Nullable Webhook.Type type,
+    @Nullable Map<String, Object> settings,
+    @Nullable Boolean enabled
   ) {}
 
   @Serdeable
@@ -74,7 +92,8 @@ public class UpdateWebhook extends BaseController {
     String id,
     String recipientId,
     String url,
-    Type type,
+    Webhook.Type type,
+    Map<String, Object> settings,
     boolean enabled
   ) {}
 }

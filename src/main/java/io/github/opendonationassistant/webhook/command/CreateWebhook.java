@@ -1,7 +1,7 @@
 package io.github.opendonationassistant.webhook.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.webhook.repository.Webhook.Type;
+import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -11,7 +11,13 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Controller
@@ -28,35 +34,41 @@ public class CreateWebhook extends BaseController {
   @Post("/webhooks/commands/create-webhook")
   public CompletableFuture<HttpResponse<WebhookDto>> createWebhook(
     Authentication auth,
-    @Body CreateWebhookCommand command
+    @Valid @Body CreateWebhookCommand command
   ) {
     var ownerId = getOwnerId(auth);
     if (ownerId.isEmpty()) {
       return CompletableFuture.completedFuture(HttpResponse.unauthorized());
     }
     return CompletableFuture.supplyAsync(() -> {
+      var settings = Optional.ofNullable(command.settings()).orElseGet(Map::of);
       var webhook = repository.create(
         ownerId.get(),
         command.url(),
         command.type(),
+        settings,
         command.enabled()
       );
-      return HttpResponse.ok(
-        new WebhookDto(
-          webhook.id(),
-          webhook.recipientId(),
-          webhook.url(),
-          webhook.type(),
-          webhook.enabled()
-        )
-      );
+      return HttpResponse.ok(asDto(webhook));
     });
+  }
+
+  private WebhookDto asDto(Webhook webhook) {
+    return new WebhookDto(
+      webhook.id(),
+      webhook.recipientId(),
+      webhook.url(),
+      webhook.type(),
+      webhook.settings(),
+      webhook.enabled()
+    );
   }
 
   @Serdeable
   public record CreateWebhookCommand(
-    String url,
-    Type type,
+    @NotBlank String url,
+    @NotNull Webhook.Type type,
+    @Nullable Map<String, Object> settings,
     boolean enabled
   ) {}
 
@@ -65,7 +77,8 @@ public class CreateWebhook extends BaseController {
     String id,
     String recipientId,
     String url,
-    Type type,
+    Webhook.Type type,
+    Map<String, Object> settings,
     boolean enabled
   ) {}
 }

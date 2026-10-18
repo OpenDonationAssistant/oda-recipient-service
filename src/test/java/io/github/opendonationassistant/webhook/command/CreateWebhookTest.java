@@ -12,9 +12,15 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Pure Mockito unit tests for {@link CreateWebhook}. The owner is always derived from the JWT
- * attributes, never from the request body.
+ * attributes, never from the request body. Request-body constraints are covered by
+ * {@link WebhookValidationTest}.
  */
 public class CreateWebhookTest {
+
+  private static final Map<String, Object> SETTINGS = Map.of(
+    "channel",
+    "general"
+  );
 
   WebhookRepository repository = mock(WebhookRepository.class);
   CreateWebhook controller = new CreateWebhook(repository);
@@ -31,13 +37,16 @@ public class CreateWebhookTest {
       "recipientId",
       "https://example.com/hook",
       Webhook.Type.DISCORD,
-      true
+      SETTINGS,
+      true,
+      false
     );
     when(
       repository.create(
         "recipientId",
         "https://example.com/hook",
         Webhook.Type.DISCORD,
+        SETTINGS,
         true
       )
     ).thenReturn(created);
@@ -49,6 +58,7 @@ public class CreateWebhookTest {
         new CreateWebhookCommand(
           "https://example.com/hook",
           Webhook.Type.DISCORD,
+          SETTINGS,
           true
         )
       )
@@ -62,11 +72,62 @@ public class CreateWebhookTest {
     assertEquals("recipientId", body.recipientId());
     assertEquals("https://example.com/hook", body.url());
     assertEquals(Webhook.Type.DISCORD, body.type());
+    assertEquals(SETTINGS, body.settings());
     assertTrue(body.enabled());
     verify(repository).create(
       "recipientId",
       "https://example.com/hook",
       Webhook.Type.DISCORD,
+      SETTINGS,
+      true
+    );
+  }
+
+  @Test
+  public void testDefaultsSettingsToEmptyMapWhenOmitted() {
+    // Arrange
+    when(auth.getAttributes()).thenReturn(
+      Map.of("preferred_username", "recipientId")
+    );
+    var created = new Webhook(
+      "webhookId",
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      Map.of(),
+      true,
+      false
+    );
+    when(
+      repository.create(
+        "recipientId",
+        "https://example.com/hook",
+        Webhook.Type.DISCORD,
+        Map.of(),
+        true
+      )
+    ).thenReturn(created);
+
+    // Act - settings omitted (null)
+    var response = controller
+      .createWebhook(
+        auth,
+        new CreateWebhookCommand(
+          "https://example.com/hook",
+          Webhook.Type.DISCORD,
+          null,
+          true
+        )
+      )
+      .join();
+
+    // Assert
+    assertEquals(200, response.getStatus().getCode());
+    verify(repository).create(
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      Map.of(),
       true
     );
   }
@@ -83,6 +144,7 @@ public class CreateWebhookTest {
         new CreateWebhookCommand(
           "https://example.com/hook",
           Webhook.Type.DISCORD,
+          SETTINGS,
           true
         )
       )
@@ -93,6 +155,7 @@ public class CreateWebhookTest {
     verify(repository, never()).create(
       anyString(),
       anyString(),
+      any(),
       any(),
       anyBoolean()
     );

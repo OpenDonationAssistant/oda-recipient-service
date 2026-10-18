@@ -33,13 +33,17 @@ public class WebhookControllerTest {
           "recipientId",
           "https://one.example.com",
           Webhook.Type.DISCORD,
-          true
+          Map.of("channel", "general"),
+          true,
+          false
         ),
         new Webhook(
           "id2",
           "recipientId",
           "https://two.example.com",
           Webhook.Type.TELEGRAM,
+          Map.of("chatId", "12345"),
+          false,
           false
         )
       )
@@ -57,10 +61,12 @@ public class WebhookControllerTest {
     assertEquals("recipientId", body.get(0).recipientId());
     assertEquals("https://one.example.com", body.get(0).url());
     assertEquals(Webhook.Type.DISCORD, body.get(0).type());
+    assertEquals(Map.of("channel", "general"), body.get(0).settings());
     assertTrue(body.get(0).enabled());
     assertEquals("id2", body.get(1).id());
     assertEquals("https://two.example.com", body.get(1).url());
     assertEquals(Webhook.Type.TELEGRAM, body.get(1).type());
+    assertEquals(Map.of("chatId", "12345"), body.get(1).settings());
     assertFalse(body.get(1).enabled());
     verify(repository).findByRecipientId("recipientId");
   }

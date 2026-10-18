@@ -2,7 +2,6 @@ package io.github.opendonationassistant.webhook.view;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.webhook.repository.Webhook;
-import io.github.opendonationassistant.webhook.repository.Webhook.Type;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
@@ -13,6 +12,7 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class WebhookController extends BaseController {
@@ -46,6 +46,7 @@ public class WebhookController extends BaseController {
       webhook.recipientId(),
       webhook.url(),
       webhook.type(),
+      webhook.settings(),
       webhook.enabled()
     );
   }
@@ -55,7 +56,8 @@ public class WebhookController extends BaseController {
     String id,
     String recipientId,
     String url,
-    Type type,
+    Webhook.Type type,
+    Map<String, Object> settings,
     boolean enabled
   ) {}
 }

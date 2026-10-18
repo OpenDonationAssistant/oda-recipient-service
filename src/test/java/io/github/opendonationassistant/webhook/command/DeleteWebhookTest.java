@@ -12,10 +12,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pure Mockito unit tests for {@link DeleteWebhook}. Only the JWT owner may delete; not-found and
- * non-owner both collapse to 404 so webhook existence is never leaked.
+ * Pure Mockito unit tests for {@link DeleteWebhook}. Only the JWT owner may delete; missing,
+ * non-owner and a lost row all collapse to 401 so webhook existence is never leaked. Request-body
+ * constraints are covered by {@link WebhookValidationTest}.
  */
 public class DeleteWebhookTest {
+
+  private static final String ID = "11111111-1111-1111-1111-111111111111";
 
   WebhookRepository repository = mock(WebhookRepository.class);
   DeleteWebhook controller = new DeleteWebhook(repository);
@@ -28,17 +31,20 @@ public class DeleteWebhookTest {
       Map.of("preferred_username", "recipientId")
     );
     var webhook = new Webhook(
-      "webhookId",
+      ID,
       "recipientId",
       "https://example.com/hook",
       Webhook.Type.DISCORD,
-      true
+      Map.of(),
+      true,
+      false
     );
-    when(repository.findById("webhookId")).thenReturn(Optional.of(webhook));
+    when(repository.findById(ID)).thenReturn(Optional.of(webhook));
+    when(repository.delete(webhook)).thenReturn(true);
 
     // Act
     var response = controller
-      .deleteWebhook(auth, new DeleteWebhookCommand("webhookId"))
+      .deleteWebhook(auth, new DeleteWebhookCommand(ID))
       .join();
 
     // Assert
@@ -53,31 +59,83 @@ public class DeleteWebhookTest {
 
     // Act
     var response = controller
-      .deleteWebhook(auth, new DeleteWebhookCommand("webhookId"))
+      .deleteWebhook(auth, new DeleteWebhookCommand(ID))
       .join();
 
     // Assert
     assertEquals(401, response.getStatus().getCode());
     verify(repository, never()).findById(anyString());
-    verify(repository, never()).delete(any(Webhook.class));
   }
 
   @Test
-  public void testReturnsNotFoundWhenWebhookDoesNotExist() {
+  public void testReturnsUnauthorizedWhenWebhookDoesNotExist() {
     // Arrange
     when(auth.getAttributes()).thenReturn(
       Map.of("preferred_username", "recipientId")
     );
-    when(repository.findById("webhookId")).thenReturn(Optional.empty());
+    when(repository.findById(ID)).thenReturn(Optional.empty());
 
     // Act
     var response = controller
-      .deleteWebhook(auth, new DeleteWebhookCommand("webhookId"))
+      .deleteWebhook(auth, new DeleteWebhookCommand(ID))
       .join();
 
     // Assert
-    assertEquals(404, response.getStatus().getCode());
+    assertEquals(401, response.getStatus().getCode());
     verify(repository, never()).delete(any(Webhook.class));
   }
-  
+
+  @Test
+  public void testReturnsUnauthorizedWhenWebhookOwnedByAnotherRecipient() {
+    // Arrange
+    when(auth.getAttributes()).thenReturn(
+      Map.of("preferred_username", "recipientId")
+    );
+    var webhook = new Webhook(
+      ID,
+      "otherRecipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      Map.of(),
+      true,
+      false
+    );
+    when(repository.findById(ID)).thenReturn(Optional.of(webhook));
+
+    // Act
+    var response = controller
+      .deleteWebhook(auth, new DeleteWebhookCommand(ID))
+      .join();
+
+    // Assert
+    assertEquals(401, response.getStatus().getCode());
+    verify(repository, never()).delete(any(Webhook.class));
+  }
+
+  @Test
+  public void testReturnsUnauthorizedWhenDeleteReportsLostRow() {
+    // Arrange
+    when(auth.getAttributes()).thenReturn(
+      Map.of("preferred_username", "recipientId")
+    );
+    var webhook = new Webhook(
+      ID,
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      Map.of(),
+      true,
+      false
+    );
+    when(repository.findById(ID)).thenReturn(Optional.of(webhook));
+    when(repository.delete(webhook)).thenReturn(false);
+
+    // Act
+    var response = controller
+      .deleteWebhook(auth, new DeleteWebhookCommand(ID))
+      .join();
+
+    // Assert
+    assertEquals(401, response.getStatus().getCode());
+  }
 }
