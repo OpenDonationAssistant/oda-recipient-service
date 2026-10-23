@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -88,5 +89,39 @@ public class TokenRequestHandlerTest {
 
     response = handler.handle(new TokenRequest("testuser", "notfound"));
     assertNull(response.token());
+  }
+
+  @Test
+  public void testReturnsCauseMessageWhenRefreshFails() throws IOException {
+    Mockito.when(twitchToken.data()).thenReturn(
+      new TokenData(
+        "refreshTokenId",
+        "TOKEN",
+        "refreshToken",
+        "testuser",
+        "Twitch",
+        true,
+        false,
+        Map.of(),
+        List.of()
+      )
+    );
+
+    Mockito.when(twitchToken.obtainAccessToken()).thenReturn(
+      CompletableFuture.failedFuture(
+        new CompletionException(new IllegalStateException("provider is down"))
+      )
+    );
+
+    Mockito.when(tokenRepository.findById("refreshTokenId")).thenReturn(
+      Optional.of(twitchToken)
+    );
+
+    var response = handler.handle(
+      new TokenRequest("testuser", "refreshTokenId")
+    );
+
+    assertNull(response.token());
+    assertEquals("provider is down", response.message());
   }
 }

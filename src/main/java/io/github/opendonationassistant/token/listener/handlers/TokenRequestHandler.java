@@ -64,7 +64,9 @@ public class TokenRequestHandler {
       }
       return new TokenResponse(obtainedToken, "");
     } catch (Exception e) {
-      var errorMessage = Optional.ofNullable(e.getMessage()).orElse("");
+      var errorMessage = Optional.ofNullable(e.getCause())
+        .map(Throwable::getMessage)
+        .orElseGet(() -> Optional.ofNullable(e.getMessage()).orElse(""));
       log.error(
         "Failed to obtain token",
         Map.of(

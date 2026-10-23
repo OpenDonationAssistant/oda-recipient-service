@@ -38,6 +38,10 @@ public class GetAccessToken extends BaseController {
     )
   )
   @ApiResponse(responseCode = "401", description = "Unauthorized or not found")
+  @ApiResponse(
+    responseCode = "502",
+    description = "Token provider failed to return a valid access token"
+  )
   public CompletableFuture<HttpResponse<AccessToken>> getAccessToken(
     Authentication auth,
     @Body GetAccessTokenCommand command
@@ -54,7 +58,9 @@ public class GetAccessToken extends BaseController {
           return refreshToken
             .obtainAccessToken()
             .thenApply(it ->
-              (HttpResponse<AccessToken>) HttpResponse.ok(new AccessToken(it.accessToken()))
+              (HttpResponse<AccessToken>) HttpResponse.ok(
+                new AccessToken(it.accessToken())
+              )
             );
         }
         return CompletableFuture.completedFuture(
