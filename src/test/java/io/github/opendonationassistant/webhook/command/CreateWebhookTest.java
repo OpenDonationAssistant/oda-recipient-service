@@ -7,6 +7,7 @@ import io.github.opendonationassistant.webhook.command.CreateWebhook.CreateWebho
 import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.authentication.ClientAuthentication;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -24,14 +25,14 @@ public class CreateWebhookTest {
 
   WebhookRepository repository = mock(WebhookRepository.class);
   CreateWebhook controller = new CreateWebhook(repository);
-  Authentication auth = mock(Authentication.class);
+  Authentication auth = new ClientAuthentication(
+    "user",
+    Map.of("preferred_username", "recipientId")
+  );
 
   @Test
   public void testCreatesWebhookForAuthenticatedOwner() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     var created = new Webhook(
       "webhookId",
       "recipientId",
@@ -86,9 +87,6 @@ public class CreateWebhookTest {
   @Test
   public void testDefaultsSettingsToEmptyMapWhenOmitted() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     var created = new Webhook(
       "webhookId",
       "recipientId",
@@ -133,9 +131,101 @@ public class CreateWebhookTest {
   }
 
   @Test
+  public void testDefaultsEnabledToTrueWhenOmitted() {
+    // Arrange
+    var created = new Webhook(
+      "webhookId",
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      SETTINGS,
+      true,
+      false
+    );
+    when(
+      repository.create(
+        "recipientId",
+        "https://example.com/hook",
+        Webhook.Type.DISCORD,
+        SETTINGS,
+        true
+      )
+    ).thenReturn(created);
+
+    // Act - enabled omitted (null)
+    var response = controller
+      .createWebhook(
+        auth,
+        new CreateWebhookCommand(
+          "https://example.com/hook",
+          Webhook.Type.DISCORD,
+          SETTINGS,
+          null
+        )
+      )
+      .join();
+
+    // Assert
+    assertEquals(200, response.getStatus().getCode());
+    verify(repository).create(
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      SETTINGS,
+      true
+    );
+  }
+
+  @Test
+  public void testHonoursExplicitlyDisabledWebhook() {
+    // Arrange
+    var created = new Webhook(
+      "webhookId",
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      SETTINGS,
+      false,
+      false
+    );
+    when(
+      repository.create(
+        "recipientId",
+        "https://example.com/hook",
+        Webhook.Type.DISCORD,
+        SETTINGS,
+        false
+      )
+    ).thenReturn(created);
+
+    // Act
+    var response = controller
+      .createWebhook(
+        auth,
+        new CreateWebhookCommand(
+          "https://example.com/hook",
+          Webhook.Type.DISCORD,
+          SETTINGS,
+          false
+        )
+      )
+      .join();
+
+    // Assert
+    assertEquals(200, response.getStatus().getCode());
+    verify(repository).create(
+      "recipientId",
+      "https://example.com/hook",
+      Webhook.Type.DISCORD,
+      SETTINGS,
+      false
+    );
+  }
+
+  @Test
   public void testReturnsUnauthorizedWhenOwnerIsEmpty() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(Map.of());
+    auth = new ClientAuthentication("user", Map.of());
 
     // Act
     var response = controller

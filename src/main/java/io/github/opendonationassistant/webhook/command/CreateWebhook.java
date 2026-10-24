@@ -3,6 +3,7 @@ package io.github.opendonationassistant.webhook.command;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
+import io.github.opendonationassistant.webhook.validation.WebhookUrl;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -42,12 +43,13 @@ public class CreateWebhook extends BaseController {
     }
     return CompletableFuture.supplyAsync(() -> {
       var settings = Optional.ofNullable(command.settings()).orElseGet(Map::of);
+      var enabled = Optional.ofNullable(command.enabled()).orElse(true);
       var webhook = repository.create(
         ownerId.get(),
         command.url(),
         command.type(),
         settings,
-        command.enabled()
+        enabled
       );
       return HttpResponse.ok(asDto(webhook));
     });
@@ -66,10 +68,10 @@ public class CreateWebhook extends BaseController {
 
   @Serdeable
   public record CreateWebhookCommand(
-    @NotBlank String url,
+    @NotBlank @WebhookUrl String url,
     @NotNull Webhook.Type type,
     @Nullable Map<String, Object> settings,
-    boolean enabled
+    @Nullable Boolean enabled
   ) {}
 
   @Serdeable

@@ -3,6 +3,7 @@ package io.github.opendonationassistant.webhook.command;
 import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
+import io.github.opendonationassistant.webhook.validation.WebhookUrl;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -15,7 +16,6 @@ import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -81,7 +81,7 @@ public class UpdateWebhook extends BaseController {
   @Serdeable
   public record UpdateWebhookCommand(
     @NotBlank String id,
-    @Pattern(regexp = ".*\\S.*") @Nullable String url,
+    @WebhookUrl @Nullable String url,
     @Nullable Webhook.Type type,
     @Nullable Map<String, Object> settings,
     @Nullable Boolean enabled

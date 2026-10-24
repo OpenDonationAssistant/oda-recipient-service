@@ -7,6 +7,7 @@ import io.github.opendonationassistant.webhook.command.UpdateWebhook.UpdateWebho
 import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.authentication.ClientAuthentication;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -23,10 +24,11 @@ public class UpdateWebhookTest {
 
   WebhookRepository repository = mock(WebhookRepository.class);
   UpdateWebhook controller = new UpdateWebhook(repository);
-  Authentication auth = mock(Authentication.class);
+  Authentication auth = new ClientAuthentication("user", Map.of());
 
   private void authenticatedAs(String recipientId) {
-    when(auth.getAttributes()).thenReturn(
+    auth = new ClientAuthentication(
+      recipientId,
       Map.of("preferred_username", recipientId)
     );
   }
@@ -113,7 +115,7 @@ public class UpdateWebhookTest {
   @Test
   public void testReturnsUnauthorizedWhenOwnerIsEmpty() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(Map.of());
+    auth = new ClientAuthentication("user", Map.of());
 
     // Act
     var response = controller

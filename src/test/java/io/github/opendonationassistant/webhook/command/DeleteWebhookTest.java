@@ -7,6 +7,7 @@ import io.github.opendonationassistant.webhook.command.DeleteWebhook.DeleteWebho
 import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.authentication.ClientAuthentication;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -22,14 +23,14 @@ public class DeleteWebhookTest {
 
   WebhookRepository repository = mock(WebhookRepository.class);
   DeleteWebhook controller = new DeleteWebhook(repository);
-  Authentication auth = mock(Authentication.class);
+  Authentication auth = new ClientAuthentication(
+    "user",
+    Map.of("preferred_username", "recipientId")
+  );
 
   @Test
   public void testDeletesWebhookOwnedByAuthenticatedRecipient() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     var webhook = new Webhook(
       ID,
       "recipientId",
@@ -55,7 +56,7 @@ public class DeleteWebhookTest {
   @Test
   public void testReturnsUnauthorizedWhenOwnerIsEmpty() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(Map.of());
+    auth = new ClientAuthentication("user", Map.of());
 
     // Act
     var response = controller
@@ -70,9 +71,6 @@ public class DeleteWebhookTest {
   @Test
   public void testReturnsUnauthorizedWhenWebhookDoesNotExist() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     when(repository.findById(ID)).thenReturn(Optional.empty());
 
     // Act
@@ -88,9 +86,6 @@ public class DeleteWebhookTest {
   @Test
   public void testReturnsUnauthorizedWhenWebhookOwnedByAnotherRecipient() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     var webhook = new Webhook(
       ID,
       "otherRecipientId",
@@ -115,9 +110,6 @@ public class DeleteWebhookTest {
   @Test
   public void testReturnsUnauthorizedWhenDeleteReportsLostRow() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     var webhook = new Webhook(
       ID,
       "recipientId",

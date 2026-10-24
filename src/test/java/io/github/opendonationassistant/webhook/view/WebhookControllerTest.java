@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import io.github.opendonationassistant.webhook.repository.Webhook;
 import io.github.opendonationassistant.webhook.repository.WebhookRepository;
 import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.authentication.ClientAuthentication;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -18,14 +19,14 @@ public class WebhookControllerTest {
 
   WebhookRepository repository = mock(WebhookRepository.class);
   WebhookController controller = new WebhookController(repository);
-  Authentication auth = mock(Authentication.class);
+  Authentication auth = new ClientAuthentication(
+    "user",
+    Map.of("preferred_username", "recipientId")
+  );
 
   @Test
   public void testListsOwnerWebhooksMappedToDtos() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(
-      Map.of("preferred_username", "recipientId")
-    );
     when(repository.findByRecipientId("recipientId")).thenReturn(
       List.of(
         new Webhook(
@@ -74,7 +75,7 @@ public class WebhookControllerTest {
   @Test
   public void testReturnsUnauthorizedWhenOwnerIsEmpty() {
     // Arrange
-    when(auth.getAttributes()).thenReturn(Map.of());
+    auth = new ClientAuthentication("user", Map.of());
 
     // Act
     var response = controller.listWebhooks(auth);
