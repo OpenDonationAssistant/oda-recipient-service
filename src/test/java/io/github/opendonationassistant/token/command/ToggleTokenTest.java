@@ -44,4 +44,21 @@ public class ToggleTokenTest {
     var result = repository.findById(token.id());
     assertFalse(result.get().enabled());
   }
+
+  @Test
+  public void testKeepingAlreadyEnabledTokenEnabled(@Given TokenData token) {
+    var auth = mock(Authentication.class);
+    when(auth.getAttributes()).thenReturn(
+      Map.of("preferred_username", token.recipientId())
+    );
+
+    repository.save(token.withEnabled(true));
+    var response = controller.toggleToken(
+      auth,
+      new ToggleTokenCommand(token.id(), true)
+    );
+    assertEquals(200, response.getStatus().getCode());
+    var result = repository.findById(token.id());
+    assertTrue(result.get().enabled());
+  }
 }

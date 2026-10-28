@@ -1,7 +1,6 @@
 package io.github.opendonationassistant.token.command;
 
 import io.github.opendonationassistant.commons.micronaut.BaseController;
-import io.github.opendonationassistant.token.repository.TokenDataRepository;
 import io.github.opendonationassistant.token.repository.TokenRepository;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -31,10 +30,16 @@ public class ToggleToken extends BaseController {
     if (owner.isEmpty()) {
       return HttpResponse.unauthorized();
     }
-    repository
-      .findById(command.id())
-      .filter(data -> data.data().recipientId().equals(owner.get()))
-      .ifPresent(token -> token.toggle());
+    var token = repository.findById(command.id());
+    if (token.isEmpty()) {
+      return HttpResponse.unauthorized();
+    }
+    if (!token.get().data().recipientId().equals(owner.get())) {
+      return HttpResponse.unauthorized();
+    }
+    if (token.get().data().enabled() != command.enabled()) {
+      token.get().toggle();
+    }
     return HttpResponse.ok();
   }
 

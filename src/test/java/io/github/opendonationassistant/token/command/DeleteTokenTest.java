@@ -105,6 +105,33 @@ public class DeleteTokenTest {
   }
 
   @Test
+  public void testDeletionOfAnotherUsersTokenIsRejected() {
+    var token = Instancio.of(TokenData.class)
+      .set(Select.field(TokenData::recipientId), "recipient-a")
+      .set(Select.field(TokenData::enabled), true)
+      .set(Select.field(TokenData::deleted), false)
+      .create();
+
+    when(auth.getAttributes()).thenReturn(
+      Map.of("preferred_username", "recipient-b")
+    );
+
+    repository.save(token);
+
+    var response = controller
+      .deleteToken(auth, new DeleteTokenCommand(token.id()))
+      .join();
+
+    assertEquals(401, response.getStatus().getCode());
+    var stillPresent = repository.findById(token.id());
+    assertTrue(stillPresent.isPresent(), "Token should left in database");
+    assertFalse(
+      stillPresent.get().deleted(),
+      "Token should not be marked as deleted"
+    );
+  }
+
+  @Test
   public void testKickTokenDeletion(
     @Given TokenData template,
     MockServerClient client

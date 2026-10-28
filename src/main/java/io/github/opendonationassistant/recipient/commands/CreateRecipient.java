@@ -1,5 +1,6 @@
 package io.github.opendonationassistant.recipient.commands;
 
+import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.github.opendonationassistant.events.files.FilesCommand;
 import io.github.opendonationassistant.rabbit.RabbitClient;
 import io.micronaut.http.HttpResponse;
@@ -9,6 +10,7 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.annotation.Nullable;
@@ -24,7 +26,7 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 @Controller
-public class CreateRecipient {
+public class CreateRecipient extends BaseController {
 
   private final RabbitClient rabbit;
   private final RealmResource realm;
@@ -38,12 +40,17 @@ public class CreateRecipient {
     this.realm = realm;
   }
 
-  @Secured(SecurityRule.IS_ANONYMOUS)
+  @Secured(SecurityRule.IS_AUTHENTICATED)
   @Post("/recipients/commands/create-recipient")
   @ExecuteOn(TaskExecutors.BLOCKING)
   public HttpResponse<CreateRecipientCommandResponse> createRecipient(
+    Authentication auth,
     @Body CreateRecipientCommand command
   ) {
+    // Creating Keycloak accounts is an administrative operation.
+    if (!isAdmin(auth)) {
+      return HttpResponse.unauthorized();
+    }
     var newUser = new UserRepresentation();
     newUser.setEnabled(true);
     newUser.setUsername(command.nickname());

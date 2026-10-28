@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.github.opendonationassistant.commons.Amount;
+import io.github.opendonationassistant.testutils.AuthenticationGenerator;
+import io.micronaut.security.authentication.Authentication;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class DonatersControllerTest {
       new DailyContribution(Map.of("nickname", new Amount(10, 0, "RUB")))
     );
 
-    var response = controller.list("recipientId", "day");
+    var response = controller.list(AuthenticationGenerator.forUser("recipientId"), "recipientId", "day");
 
     assertEquals(200, response.getStatus().getCode());
     var body = response.body();
@@ -43,7 +45,7 @@ public class DonatersControllerTest {
 
   @Test
   public void testReturnsEmptyMapForDayWhenCacheIsEmpty() {
-    var response = controller.list("recipientId", "day");
+    var response = controller.list(AuthenticationGenerator.forUser("recipientId"), "recipientId", "day");
 
     var body = response.body();
     assertNotNull(body);
@@ -71,7 +73,11 @@ public class DonatersControllerTest {
         )
       );
 
-    var response = controller.list("recipientId", "month");
+    var response = controller.list(
+      AuthenticationGenerator.forUser("recipientId"),
+      "recipientId",
+      "month"
+    );
 
     var body = response.body();
     assertNotNull(body);
@@ -87,11 +93,34 @@ public class DonatersControllerTest {
     when(repository.getByRecipientIdAndPeriod("recipientId", expectedKey))
       .thenReturn(new ArrayList<>());
 
-    var response = controller.list("recipientId", "year");
+    var response = controller.list(AuthenticationGenerator.forUser("recipientId"), "recipientId", "year");
 
     var body = response.body();
     assertNotNull(body);
     assertTrue(body.isEmpty());
     verify(repository).getByRecipientIdAndPeriod("recipientId", expectedKey);
+  }
+
+  @Test
+  public void testRejectsAnotherRecipientsData() {
+    var response = controller.list(
+      AuthenticationGenerator.forUser("anotherRecipient"),
+      "recipientId",
+      "day"
+    );
+
+    assertEquals(403, response.getStatus().getCode());
+    verifyNoInteractions(repository);
+  }
+
+  @Test
+  public void testRejectsRequestWithoutOwner() {
+    var auth = mock(Authentication.class);
+    when(auth.getAttributes()).thenReturn(Map.of());
+
+    var response = controller.list(auth, "recipientId", "day");
+
+    assertEquals(401, response.getStatus().getCode());
+    verifyNoInteractions(repository);
   }
 }

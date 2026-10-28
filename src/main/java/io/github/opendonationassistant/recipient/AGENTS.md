@@ -1,7 +1,7 @@
 # AGENTS.md — recipient
 
-**Generated:** 2026-09-12
-**Commit:** 209fe29
+**Generated:** 2026-10-28
+**Commit:** 5e954f6
 
 ## OVERVIEW
 
@@ -15,9 +15,9 @@ Recipient settings (features/log levels), daily contribution awards, and account
 - `view/` (1) — `SettingsController` (settings CRUD)
 
 ### commands/
-- `CreateRecipient` — POST `/recipients/commands/create-recipient`; creates Keycloak user, sends `FilesCommand.CreateBucketCommand`, returns generated password. **IS_ANONYMOUS** (see ANTI-PATTERNS).
+- `CreateRecipient` — POST `/recipients/commands/create-recipient`; creates Keycloak user, sends `FilesCommand.CreateBucketCommand`, returns generated password. `IS_AUTHENTICATED` + `isAdmin` only (see ANTI-PATTERNS).
 - `ToggleFeature` — POST `/recipients/commands/toggle-feature`; admin-only (`isAdmin`); calls `Settings.setFeatureStatus()`.
-- `UpdateEmail` — POST `/recipients/commands/update-email`; updates Keycloak user + `sendVerifyEmail()`.
+- `UpdateEmail` — POST `/recipients/commands/update-email`; admin-only (`isAdmin`); updates Keycloak user + `sendVerifyEmail()`.
 - `ChangePassword` — POST `/recipients/commands/changePassword`; verifies old password via KeycloakClient token grant, then `resetPassword()`.
 
 ### donater/
@@ -58,5 +58,4 @@ Recipient settings (features/log levels), daily contribution awards, and account
 ## ANTI-PATTERNS
 
 - `Settings.setFeatureStatus()` — filter-remove + add can create duplicate features; check existence before adding (flagged bug).
-- `DonatersController` trusts path `{recipientId}` — no `getOwnerId(auth)` check; derive owner from JWT.
-- `CreateRecipient` is `IS_ANONYMOUS` — don't add new anonymous endpoints.
+- `CreateRecipient` requires `isAdmin` (401 otherwise) — creating Keycloak accounts is administrative; don't add new anonymous endpoints.

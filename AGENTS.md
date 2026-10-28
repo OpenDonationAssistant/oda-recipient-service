@@ -1,12 +1,12 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-09-12T07:03:49Z
-**Commit:** 209fe29
+**Generated:** 2026-10-28
+**Commit:** 5e954f6
 **Branch:** master
 
 ## OVERVIEW
 
-Micronaut microservice (part of the OpenDonationAssistant platform) managing stream-donation recipients: OAuth token storage/refresh for ~15 donation platforms, recipient settings, and daily contribution awards. Single Maven module, **Java 25**, Micronaut platform `5.1.0`. Entry point: `io.github.opendonationassistant.Application`. Version `0.14.0`.
+Micronaut microservice (part of the OpenDonationAssistant platform) managing stream-donation recipients: OAuth token storage/refresh for ~15 donation platforms, recipient settings, daily contribution awards, and webhooks. Single Maven module, **Java 25**, Micronaut platform `5.1.0`. Entry point: `io.github.opendonationassistant.Application`. Version `0.18.0`.
 
 ## STRUCTURE
 
@@ -14,18 +14,20 @@ Micronaut microservice (part of the OpenDonationAssistant platform) managing str
 oda-recipient-service/
 ├── src/main/java/io/github/opendonationassistant/
 │   ├── Application.java        # main() + @Factory: Rabbit topology, Infinispan, RabbitClient facades
-│   ├── token/                  # OAuth token subsystem (largest, 56 files) → see token/AGENTS.md
+│   ├── token/                  # OAuth token subsystem (largest) → see token/AGENTS.md
 │   │   └── repository/         # 15 platform Token+Repository pairs → see token/repository/AGENTS.md
 │   ├── recipient/              # recipient settings + daily contributions → see recipient/AGENTS.md
+│   ├── webhook/                # webhook management (CRUD + validation)
 │   ├── otp/command/            # OTP exchange flow (unauthenticated — TODO)
 │   ├── integration/            # one HTTP client per external platform (twitch, kick, ...)
-│   └── info/                   # service info endpoint
+│   ├── info/                   # service info endpoint
+│   └── KeycloakConfiguration  # Keycloak admin RealmResource bean
 ├── src/main/resources/
 │   ├── application*.yml        # base + allinone (dev) + standalone (prod) profiles
 │   ├── logback.xml             # JSON structured logging
-│   └── db/migration/V1..V11    # Flyway migrations, schema `recipient`
+│   └── db/migration/V1..V15    # Flyway migrations, schema `recipient`
 ├── src/test/java/              # JUnit5 tests mirroring main packages
-├── pom.xml                     # version 0.14.0, dynamic ${packaging} (jar default)
+├── pom.xml                     # version 0.18.0, dynamic ${packaging} (jar default)
 ├── Dockerfile                  # eclipse-temurin:25
 ├── aot-jar.properties          # Micronaut AOT (disabled in pom)
 └── openapi-config.json         # npm client codegen (@opendonationassistant/oda-recipient-service-client)
@@ -38,9 +40,10 @@ oda-recipient-service/
 | Add a new platform token | `token/repository/` (see its AGENTS.md checklist) |
 | Add an OAuth link endpoint | `token/command/Link{Platform}.java` template |
 | RabbitMQ topology / named clients | `Application.rabbitConfiguration()` |
-| Add a cache | `*CacheConfiguration` `@Factory` (see `OtpCacheConfiguration`) |
+| Add a cache | `*CacheConfiguration` `@Factory` (see `OtpCacheConfiguration`, `DonatersCacheConfiguration`) |
 | DB schema change | `src/main/resources/db/migration/V{n}__*.sql` |
 | Contribution/payment logic | `recipient/donater/` |
+| Webhook management | `webhook/` (CRUD commands/view/repository/validation) |
 | Auth helpers | `BaseController.getOwnerId/isAdmin` from `oda-commons` |
 
 ## CODE MAP
@@ -51,9 +54,10 @@ oda-recipient-service/
 | `TokenRepository` | @Singleton | token/repository | facade over `TokenDataRepository`, dispatches to `TokenProvider` by `system()` |
 | `TokenDataRepository` | @JdbcRepository | token/repository | Postgres CRUD for `token` table |
 | `GenericTokenProvider` | abstract | token/repository | base for all 15 platform repositories |
-| `TokenRequestHandler` | @RabbitListener | token/listener/handlers | RPC on `recipient.token-request` → `TokenResponse` |
+| `TokenRequestHandler` | @RabbitListener | token/listener/handlers | RPC on `rpc` exchange queue `token` → `TokenResponse` |
 | `ContributionListener` | @RabbitListener | recipient/donater | consumes `HistoryItemEvent`, upserts contributions |
 | `SettingsController` | @Controller | recipient/view | recipient settings CRUD |
+| `WebhookController` | @Controller | webhook/view | webhook CRUD endpoints |
 | `OtpCommandController` | @Controller | otp/command | `/otp/create`, `/otp/exchange` (IS_ANONYMOUS) |
 | `KeycloakConfiguration` | @Factory | root | Keycloak admin `RealmResource` bean |
 
@@ -72,7 +76,7 @@ oda-recipient-service/
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
-- **No ownership check on token ops** — `DeleteToken` deletes by ID without recipient filter (flagged in TEST-REPORT.md). Always filter by `getOwnerId(auth)`.
+- **Token ops must check ownership** — `DeleteToken`, `ToggleToken`, and `GetAccessToken` filter by `token.data().recipientId()` against `getOwnerId(auth)`; mismatches return 401. Keep this pattern for new token operations.
 - **Unauthenticated endpoints** — `OtpCommandController` is `IS_ANONYMOUS` (TODO: add auth). Don't add new anonymous endpoints.
 - **`Settings.setFeatureStatus()`** — filter-remove + add can create duplicate features; check existence before adding.
 - **Mocking `Authentication` in tests without exercising real security rules** — flagged coverage gap.

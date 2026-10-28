@@ -1,12 +1,14 @@
 package io.github.opendonationassistant.recipient.donater;
 
 import io.github.opendonationassistant.commons.Amount;
+import io.github.opendonationassistant.commons.micronaut.BaseController;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import jakarta.inject.Inject;
 import java.time.ZonedDateTime;
@@ -16,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller("/recipients/{recipientId}/donaters")
-public class DonatersController {
+public class DonatersController extends BaseController {
 
   private final ContributionRepository repository;
   private Map<String, DailyContribution> dailyContribution;
@@ -33,9 +35,17 @@ public class DonatersController {
   @Get
   @Secured(SecurityRule.IS_AUTHENTICATED)
   public HttpResponse<Map<String, Amount>> list(
+    Authentication auth,
     @PathVariable("recipientId") String recipientId,
     @QueryValue("period") String period
   ) {
+    var owner = getOwnerId(auth);
+    if (owner.isEmpty()) {
+      return HttpResponse.unauthorized();
+    }
+    if (!recipientId.equals(owner.get())) {
+      return HttpResponse.unauthorized();
+    }
     if ("day".equalsIgnoreCase(period)) {
       return HttpResponse.ok(
         dailyContribution

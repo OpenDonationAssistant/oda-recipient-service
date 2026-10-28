@@ -1,7 +1,7 @@
 # AGENTS.md — token/repository
 
-**Generated:** 2026-09-12
-**Commit:** 209fe29
+**Generated:** 2026-10-28
+**Commit:** 5e954f6
 
 ## OVERVIEW
 

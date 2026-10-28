@@ -1,7 +1,7 @@
 # AGENTS.md — token
 
-**Generated:** 2026-09-12
-**Commit:** 209fe29
+**Generated:** 2026-10-28
+**Commit:** 5e954f6
 
 ## OVERVIEW
 
@@ -13,7 +13,7 @@ OAuth token subsystem: storage/refresh for 15 donation platforms, link endpoints
   - Core: `TokenData` (`@MappedEntity "token"`), `TokenDataRepository` (`@JdbcRepository`), `Token` interface, `TokenRepository` (`@Singleton` facade dispatching to `TokenProvider` by `system()`), `GenericToken` (default impl, emits `TokenSettingsChanged`), `GenericTokenProvider` (abstract base), `TokenProvider`, `OauthClient`, `RefreshToken` (`GenericToken` + OAuth refresh)
   - 15 pairs `{Platform}Token` + `{Platform}TokenRepository`: Twitch, Kick, Discord, Vklive, IHAQ, Streamlabs, StreamElements, StreamElementsJWT, GoodGame, DonationAlerts, UnofficialDonationAlerts, DonatePay, DonateX, Tribute, GoogleApiKey
 - `command/` (14 files) — `SetToken`, `GetAccessToken`, `ToggleToken`, `DeleteToken`, `RefreshTokens` (admin-only), 9 `Link*` commands (Twitch, Kick, Discord, Vklive, IHAQ, StreamElements, Streamlabs, GoodGame, DonationAlerts)
-- `listener/handlers/TokenRequestHandler` — `@RabbitListener` RPC on queue `recipient.token-request`; consumes `TokenRPC.TokenRequest` → `TokenResponse`
+- `listener/handlers/TokenRequestHandler` — `@RabbitListener` RPC on `rpc` exchange queue `token`; consumes `TokenRPC.TokenRequest` → `TokenResponse`
 - `events/TokenSettingsChanged` — `@Serdeable` record implementing `HasRecipientId`; enum `Event {TOKEN_CREATED (unused), TOKEN_UPDATED, SETTINGS_CHANGED, TOKEN_TOGGLED, TOKEN_DELETED}`
 - `view/TokenController` — read controller (`GET /recipients/tokens`)
 
@@ -37,5 +37,5 @@ OAuth token subsystem: storage/refresh for 15 donation platforms, link endpoints
 
 ## ANTI-PATTERNS
 
-- `DeleteToken` deletes by ID without recipient ownership filter (flagged in TEST-REPORT.md) — unlike `GetAccessToken`/`ToggleToken`/`SetToken`, which all filter by owner
+- Token commands (`DeleteToken`, `ToggleToken`, `GetAccessToken`, `SetToken`) must filter by owner — `DeleteToken`/`ToggleToken` return 401 when the token belongs to another recipient
 - Adding a platform without the full checklist (client + Token + TokenRepository + Link command) — see `repository/AGENTS.md`

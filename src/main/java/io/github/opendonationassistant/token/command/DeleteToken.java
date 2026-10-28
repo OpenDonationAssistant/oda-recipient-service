@@ -35,13 +35,14 @@ public class DeleteToken extends BaseController {
     }
     return repository
       .findById(command.id())
+      .filter(token -> token.data().recipientId().equals(owner.get()))
       .map(token ->
         token
           .delete()
           .thenApply(_ -> (HttpResponse<Void>) HttpResponse.<Void>ok())
       )
       .orElseGet(() ->
-        CompletableFuture.completedFuture(HttpResponse.notFound())
+        CompletableFuture.completedFuture(HttpResponse.unauthorized())
       );
   }
 
