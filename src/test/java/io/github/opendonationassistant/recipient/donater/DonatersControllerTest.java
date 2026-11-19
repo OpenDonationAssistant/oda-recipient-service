@@ -109,7 +109,7 @@ public class DonatersControllerTest {
       "day"
     );
 
-    assertEquals(403, response.getStatus().getCode());
+    assertEquals(401, response.getStatus().getCode());
     verifyNoInteractions(repository);
   }
 
